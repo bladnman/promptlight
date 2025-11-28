@@ -1,0 +1,68 @@
+.container {
+  padding: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.icon {
+  color: var(--accent-primary);
+  font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-sm);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  outline: none;
+  min-width: 0;
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+.input.error {
+  border-color: var(--status-error);
+}
+
+.cancelButton {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-xs);
+  font-size: var(--font-size-sm);
+  line-height: 1;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.cancelButton:hover {
+  color: var(--text-primary);
+  background: var(--selection-bg);
+}
+
+.errorText {
+  font-size: var(--font-size-xs);
+  color: var(--status-error);
+  margin-top: var(--space-xs);
+  padding-left: calc(var(--font-size-sm) + var(--space-sm));
+}
+
+.hint {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-xs);
+  padding-left: calc(var(--font-size-sm) + var(--space-sm));
+}

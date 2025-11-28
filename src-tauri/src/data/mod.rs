@@ -19,6 +19,10 @@ pub struct PromptMetadata {
     pub last_used: Option<String>,
     pub created: String,
     pub updated: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
 }
 
 /// Full prompt with content
@@ -38,12 +42,25 @@ pub struct SearchResult {
     pub score: f64,
 }
 
+/// Folder metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderMetadata {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub icon: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub color: Option<String>,
+}
+
 /// The full index stored in index.json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PromptIndex {
     pub prompts: Vec<PromptMetadata>,
     pub folders: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub folder_meta: Option<std::collections::HashMap<String, FolderMetadata>>,
 }
 
 impl Default for PromptIndex {
@@ -51,6 +68,7 @@ impl Default for PromptIndex {
         Self {
             prompts: Vec::new(),
             folders: vec!["uncategorized".to_string()],
+            folder_meta: None,
         }
     }
 }
@@ -95,6 +113,8 @@ pub fn create_sample_prompts() -> (PromptIndex, Vec<(String, String)>) {
             last_used: None,
             created: now.clone(),
             updated: now.clone(),
+            icon: None,
+            color: None,
         });
         files.push((filename, content.to_string()));
     }
@@ -107,7 +127,7 @@ pub fn create_sample_prompts() -> (PromptIndex, Vec<(String, String)>) {
         "uncategorized".to_string(),
     ];
 
-    (PromptIndex { prompts, folders }, files)
+    (PromptIndex { prompts, folders, folder_meta: None }, files)
 }
 
 /// Get the data directory path (~/.prompt-launcher)

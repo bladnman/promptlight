@@ -1,12 +1,15 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import type { Prompt, PromptMetadata, PromptIndex } from '../types';
+import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
+import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
 
 interface EditorState {
   /** All prompts for sidebar list */
   prompts: PromptMetadata[];
   /** Available folders */
   folders: string[];
+  /** Folder metadata (icon, color) */
+  folderMeta: Record<string, FolderMetadata>;
   /** Currently selected prompt ID in sidebar */
   selectedPromptId: string | null;
   /** Sidebar collapsed state */
@@ -23,6 +26,16 @@ interface EditorState {
   autoSaveStatus: 'idle' | 'saving' | 'saved' | 'error';
   /** Error message */
   error: string | null;
+  /** Search filter text for sidebar */
+  searchFilter: string;
+  /** Folder collapsed states - key is folder name */
+  collapsedFolders: Record<string, boolean>;
+  /** Whether the new folder input is visible */
+  isAddingFolder: boolean;
+  /** New folder name being typed */
+  newFolderName: string;
+  /** Folder being edited (for rename dialog) */
+  editingFolder: string | null;
 }
 
 interface EditorActions {
@@ -48,6 +61,28 @@ interface EditorActions {
   clearError: () => void;
   /** Reset store */
   reset: () => void;
+  /** Set the search filter */
+  setSearchFilter: (filter: string) => void;
+  /** Toggle folder collapsed state */
+  toggleFolderCollapsed: (folder: string) => void;
+  /** Start adding a new folder */
+  startAddingFolder: () => void;
+  /** Cancel adding a new folder */
+  cancelAddingFolder: () => void;
+  /** Set new folder name */
+  setNewFolderName: (name: string) => void;
+  /** Create the new folder */
+  createFolder: () => Promise<boolean>;
+  /** Create folder and select it in the editor */
+  createFolderAndSelect: (name: string) => Promise<boolean>;
+  /** Start editing a folder */
+  startEditingFolder: (folder: string) => void;
+  /** Cancel editing folder */
+  cancelEditingFolder: () => void;
+  /** Rename a folder */
+  renameFolder: (oldName: string, newName: string) => Promise<boolean>;
+  /** Delete a folder */
+  deleteFolder: (name: string) => Promise<boolean>;
 }
 
 type EditorStore = EditorState & EditorActions;
@@ -55,6 +90,7 @@ type EditorStore = EditorState & EditorActions;
 const initialState: EditorState = {
   prompts: [],
   folders: ['uncategorized'],
+  folderMeta: {},
   selectedPromptId: null,
   sidebarCollapsed: false,
   editedPrompt: null,
@@ -63,6 +99,11 @@ const initialState: EditorState = {
   isLoading: false,
   autoSaveStatus: 'idle',
   error: null,
+  searchFilter: '',
+  collapsedFolders: {},
+  isAddingFolder: false,
+  newFolderName: '',
+  editingFolder: null,
 };
 
 const emptyPrompt: Prompt = {
@@ -76,6 +117,8 @@ const emptyPrompt: Prompt = {
   created: '',
   updated: '',
   content: '',
+  icon: DEFAULT_PROMPT_ICON,
+  color: DEFAULT_PROMPT_COLOR,
 };
 
 export const useEditorStore = create<EditorStore>((set, get) => ({
@@ -87,6 +130,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({
         prompts: index.prompts,
         folders: index.folders.length > 0 ? index.folders : ['uncategorized'],
+        folderMeta: index.folderMeta || {},
       });
     } catch (error) {
       console.error('Failed to load prompts:', error);
@@ -229,5 +273,139 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   reset: () => {
     set(initialState);
+  },
+
+  setSearchFilter: (filter) => {
+    set({ searchFilter: filter });
+  },
+
+  toggleFolderCollapsed: (folder) => {
+    set((state) => ({
+      collapsedFolders: {
+        ...state.collapsedFolders,
+        [folder]: !state.collapsedFolders[folder],
+      },
+    }));
+  },
+
+  startAddingFolder: () => {
+    set({ isAddingFolder: true, newFolderName: '' });
+  },
+
+  cancelAddingFolder: () => {
+    set({ isAddingFolder: false, newFolderName: '' });
+  },
+
+  setNewFolderName: (name) => {
+    set({ newFolderName: name });
+  },
+
+  createFolder: async () => {
+    const { newFolderName, folders } = get();
+    const folderName = newFolderName.trim().toLowerCase();
+
+    if (!folderName) {
+      set({ error: 'Folder name cannot be empty' });
+      return false;
+    }
+
+    if (folders.includes(folderName)) {
+      set({ error: 'Folder already exists' });
+      return false;
+    }
+
+    try {
+      await invoke('add_folder', { name: folderName });
+      set({
+        folders: [...folders, folderName],
+        isAddingFolder: false,
+        newFolderName: '',
+      });
+      return true;
+    } catch (error) {
+      console.error('Failed to create folder:', error);
+      set({ error: String(error) });
+      return false;
+    }
+  },
+
+  createFolderAndSelect: async (name: string) => {
+    const { folders, editedPrompt } = get();
+    const folderName = name.trim().toLowerCase();
+
+    if (!folderName) {
+      set({ error: 'Folder name cannot be empty' });
+      return false;
+    }
+
+    if (folders.includes(folderName)) {
+      // Folder already exists, just select it
+      if (editedPrompt) {
+        set({
+          editedPrompt: { ...editedPrompt, folder: folderName },
+          isDirty: true,
+        });
+      }
+      return true;
+    }
+
+    try {
+      await invoke('add_folder', { name: folderName });
+      const newFolders = [...folders, folderName];
+      set({ folders: newFolders });
+
+      // Also select the folder in the current prompt
+      if (editedPrompt) {
+        set({
+          editedPrompt: { ...editedPrompt, folder: folderName },
+          isDirty: true,
+        });
+      }
+      return true;
+    } catch (error) {
+      console.error('Failed to create folder:', error);
+      set({ error: String(error) });
+      return false;
+    }
+  },
+
+  startEditingFolder: (folder: string) => {
+    set({ editingFolder: folder });
+  },
+
+  cancelEditingFolder: () => {
+    set({ editingFolder: null });
+  },
+
+  renameFolder: async (oldName: string, newName: string) => {
+    const newFolder = newName.trim().toLowerCase();
+
+    if (!newFolder) {
+      set({ error: 'Folder name cannot be empty' });
+      return false;
+    }
+
+    try {
+      await invoke('rename_folder', { oldName, newName: newFolder });
+      await get().loadPrompts();
+      set({ editingFolder: null });
+      return true;
+    } catch (error) {
+      console.error('Failed to rename folder:', error);
+      set({ error: String(error) });
+      return false;
+    }
+  },
+
+  deleteFolder: async (name: string) => {
+    try {
+      await invoke('delete_folder', { name });
+      await get().loadPrompts();
+      return true;
+    } catch (error) {
+      console.error('Failed to delete folder:', error);
+      set({ error: String(error) });
+      return false;
+    }
   },
 }));

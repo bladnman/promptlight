@@ -74,3 +74,30 @@ pub async fn dismiss_window(app: AppHandle) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Copy text to clipboard only (no window action)
+#[tauri::command]
+pub async fn copy_to_clipboard(app: AppHandle, text: String) -> Result<(), String> {
+    app.clipboard()
+        .write_text(&text)
+        .map_err(|e| format!("Failed to copy to clipboard: {}", e))
+}
+
+/// Copy text to clipboard and close the editor window
+#[tauri::command]
+pub async fn paste_from_editor(app: AppHandle, text: String) -> Result<(), String> {
+    // 1. Copy text to clipboard
+    app.clipboard()
+        .write_text(&text)
+        .map_err(|e| format!("Failed to write to clipboard: {}", e))?;
+
+    // Small delay to ensure clipboard write is processed
+    std::thread::sleep(std::time::Duration::from_millis(50));
+
+    // 2. Close the editor window
+    if let Some(window) = app.get_webview_window("editor") {
+        window.close().map_err(|e| format!("Failed to close editor: {}", e))?;
+    }
+
+    Ok(())
+}

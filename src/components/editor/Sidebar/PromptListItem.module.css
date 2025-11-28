@@ -1,5 +1,8 @@
 .item {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
   text-align: left;
   background: none;
   border: none;
@@ -22,34 +25,29 @@
   color: white;
 }
 
-.item.selected .folder,
 .item.selected .useCount {
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .name {
+  flex: 1;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
-  margin-bottom: var(--space-xs);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.meta {
-  display: flex;
-  gap: var(--space-sm);
-  font-size: var(--font-size-xs);
-}
-
-.folder {
-  color: var(--text-secondary);
-  background: var(--selection-bg);
-  padding: 2px var(--space-xs);
-  border-radius: var(--radius-sm);
-}
-
 .useCount {
+  flex-shrink: 0;
+  font-size: var(--font-size-xs);
   color: var(--text-muted);
 }

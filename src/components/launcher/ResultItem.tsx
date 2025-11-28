@@ -1,6 +1,8 @@
 import { useRef, useEffect } from 'react';
 import type { SearchResult } from '../../types';
 import { useLauncherStore } from '../../stores/launcherStore';
+import { Icon } from '../common/Icon';
+import { PROMPT_COLORS, DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../../config/constants';
 import styles from './ResultItem.module.css';
 
 interface ResultItemProps {
@@ -13,6 +15,10 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
   const { setSelectedIndex, executeSelected } = useLauncherStore();
   const { prompt } = result;
   const itemRef = useRef<HTMLDivElement>(null);
+
+  const icon = prompt.icon || DEFAULT_PROMPT_ICON;
+  const color = prompt.color || DEFAULT_PROMPT_COLOR;
+  const colorValue = PROMPT_COLORS[color];
 
   // Scroll into view when selected
   useEffect(() => {
@@ -39,6 +45,9 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
       role="option"
       aria-selected={isSelected}
     >
+      <span className={styles.icon} style={{ color: colorValue }}>
+        <Icon name={icon} size={18} />
+      </span>
       <div className={styles.content}>
         <div className={styles.name}>{prompt.name}</div>
         {prompt.description && (

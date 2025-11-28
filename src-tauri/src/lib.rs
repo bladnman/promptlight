@@ -88,6 +88,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             data::index::get_folders,
             data::index::get_index,
+            data::index::add_folder,
+            data::index::rename_folder,
+            data::index::delete_folder,
             data::prompt::get_prompt,
             data::prompt::save_prompt,
             data::prompt::delete_prompt,
@@ -95,6 +98,8 @@ pub fn run() {
             data::stats::record_usage,
             os::paste::paste_and_dismiss,
             os::paste::dismiss_window,
+            os::paste::copy_to_clipboard,
+            os::paste::paste_from_editor,
             os::window::open_editor_window,
         ])
         .run(tauri::generate_context!())

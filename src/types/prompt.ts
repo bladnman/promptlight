@@ -1,3 +1,5 @@
+import type { PromptIconName, PromptColorName } from '../config/constants';
+
 /**
  * Metadata for a prompt (stored in index.json)
  */
@@ -11,6 +13,8 @@ export interface PromptMetadata {
   lastUsed: string | null;
   created: string;
   updated: string;
+  icon?: PromptIconName;
+  color?: PromptColorName;
 }
 
 /**
@@ -29,9 +33,19 @@ export interface SearchResult {
 }
 
 /**
+ * Folder metadata
+ */
+export interface FolderMetadata {
+  name: string;
+  icon?: PromptIconName;
+  color?: PromptColorName;
+}
+
+/**
  * The full index structure
  */
 export interface PromptIndex {
   prompts: PromptMetadata[];
   folders: string[];
+  folderMeta?: Record<string, FolderMetadata>;
 }

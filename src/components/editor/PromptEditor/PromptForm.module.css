@@ -9,11 +9,22 @@
 
 .row {
   display: flex;
+  align-items: flex-end;
   gap: var(--space-md);
 }
 
 .row .field {
   flex: 1;
+}
+
+.iconField {
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: 2px;
+}
+
+.newFolderInput {
+  display: flex;
 }
 
 .field {
@@ -50,8 +61,7 @@
 }
 
 .input:focus,
-.select:focus,
-.textarea:focus {
+.select:focus {
   outline: none;
   border-color: var(--border-focus);
 }
@@ -62,23 +72,4 @@
 
 .select {
   cursor: pointer;
-}
-
-.textarea {
-  flex: 1;
-  padding: var(--space-md);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-family-mono);
-  color: var(--text-primary);
-  line-height: var(--line-height-relaxed);
-  resize: none;
-  transition: border-color var(--transition-fast);
-}
-
-.textarea::placeholder {
-  color: var(--text-muted);
-  font-family: var(--font-family-base);
 }

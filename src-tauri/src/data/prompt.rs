@@ -59,6 +59,8 @@ pub fn save_prompt(prompt: Prompt) -> Result<PromptMetadata, String> {
             last_used: None,
             created: now.clone(),
             updated: now,
+            icon: prompt.metadata.icon,
+            color: prompt.metadata.color,
         };
 
         // Ensure folder exists in index

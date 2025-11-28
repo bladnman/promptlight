@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useLauncherStore } from '../stores/launcherStore';
 import { HOTKEYS } from '../config/constants';
+import { getCurrentScreenBounds } from '../utils/screen';
 import type { Prompt } from '../types';
 
 /**
@@ -97,7 +98,9 @@ export function useKeyboardNav() {
       // Cmd+N - Open editor for new prompt
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
-        invoke('open_editor_window', { promptId: null });
+        getCurrentScreenBounds().then((screenBounds) => {
+          invoke('open_editor_window', { promptId: null, screenBounds });
+        });
         return;
       }
 
@@ -106,7 +109,9 @@ export function useKeyboardNav() {
         e.preventDefault();
         const selected = useLauncherStore.getState().getSelectedResult();
         if (selected) {
-          invoke('open_editor_window', { promptId: selected.prompt.id });
+          getCurrentScreenBounds().then((screenBounds) => {
+            invoke('open_editor_window', { promptId: selected.prompt.id, screenBounds });
+          });
         }
         return;
       }
