@@ -94,6 +94,23 @@ export function useKeyboardNav() {
         return;
       }
 
+      // Cmd+N - Open editor for new prompt
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        invoke('open_editor_window', { promptId: null });
+        return;
+      }
+
+      // Shift+Enter - Open editor for selected prompt
+      if (e.shiftKey && e.key === 'Enter') {
+        e.preventDefault();
+        const selected = useLauncherStore.getState().getSelectedResult();
+        if (selected) {
+          invoke('open_editor_window', { promptId: selected.prompt.id });
+        }
+        return;
+      }
+
       switch (e.key) {
         case HOTKEYS.NAVIGATE_DOWN:
           e.preventDefault();

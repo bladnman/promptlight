@@ -1,0 +1,41 @@
+.editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loading,
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: var(--font-size-md);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--status-error);
+  color: white;
+  font-size: var(--font-size-sm);
+}
+
+.dismissError {
+  background: none;
+  border: none;
+  color: white;
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  padding: 0 var(--space-sm);
+  opacity: 0.8;
+  transition: opacity var(--transition-fast);
+}
+
+.dismissError:hover {
+  opacity: 1;
+}

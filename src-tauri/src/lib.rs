@@ -88,6 +88,7 @@ pub fn run() {
             data::stats::record_usage,
             os::paste::paste_and_dismiss,
             os::paste::dismiss_window,
+            os::window::open_editor_window,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

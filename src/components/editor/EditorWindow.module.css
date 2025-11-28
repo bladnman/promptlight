@@ -1,0 +1,7 @@
+.container {
+  display: flex;
+  height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-base);
+}

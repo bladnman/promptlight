@@ -1,0 +1,116 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-secondary);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+.dirty {
+  color: var(--status-warning);
+  margin-left: var(--space-xs);
+}
+
+.status {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.confirmGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.confirmText {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.saveButton {
+  background: var(--accent-primary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.saveButton:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.saveButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.deleteButton {
+  background: none;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.deleteButton:hover {
+  background: var(--status-error);
+  color: white;
+  border-color: var(--status-error);
+}
+
+.dangerButton {
+  background: var(--status-error);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.dangerButton:hover {
+  opacity: 0.9;
+}
+
+.cancelButton {
+  background: none;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.cancelButton:hover {
+  background: var(--selection-bg);
+}
