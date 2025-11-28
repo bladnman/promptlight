@@ -109,7 +109,7 @@ pub fn delete_prompt(id: String) -> Result<(), String> {
 }
 
 /// Read prompt content from file
-fn read_prompt_content(folder: &str, filename: &str) -> Result<String, String> {
+pub fn read_prompt_content(folder: &str, filename: &str) -> Result<String, String> {
     let file_path = get_data_dir().join("prompts").join(folder).join(filename);
 
     if !file_path.exists() {
