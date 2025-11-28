@@ -3037,6 +3037,7 @@ dependencies = [
  "cocoa",
  "dirs 5.0.1",
  "objc",
+ "once_cell",
  "serde",
  "serde_json",
  "tauri",

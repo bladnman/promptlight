@@ -27,12 +27,10 @@ export function SearchBar() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      console.log('Enter pressed in SearchBar - executing');
-      executeSelected();
-    }
+  // Note: Enter key is handled by useKeyboardNav at the window level
+  // to avoid duplicate execution. We only need to handle special input-specific keys here.
+  const handleKeyDown = (_e: React.KeyboardEvent) => {
+    // Reserved for future input-specific key handling
   };
 
   const value = mode === 'promoted' ? riderText : query;
