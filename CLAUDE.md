@@ -1,4 +1,27 @@
+## Multi-Agent Development
 
+### Port Configuration
+- Each branch can have its own `.env.local` file (gitignored) to set a unique dev port
+- Set `VITE_PORT=<port>` in `.env.local` (suggested: 1420, 1430, 1440, 1450)
+- Run `npm run tauri:dev` to start - it reads from `.env.local` automatically
+
+### Presenting Work to User
+When you complete your work and want the user to review it, run the `/dev` slash command. This will:
+1. Kill existing dev processes
+2. Start a fresh build
+3. Wait for app to be ready
+4. Notify the user
+
+### Branch Development Guidelines
+- OS layer: `src-tauri/src/os/` - isolated, no frontend changes needed
+- Data layer: `src-tauri/src/data/` - isolated, update types if adding fields
+- UI layer: `src/components/` - isolated, uses invoke() to call backend
+- Interaction layer: `src/hooks/`, `src/stores/` - isolated
+
+When adding new Tauri commands:
+1. Add to appropriate module in `src-tauri/src/`
+2. Register in `src-tauri/src/lib.rs` invoke_handler
+3. Add TypeScript types in `src/types/` if needed
 
 ## Core Principles
 
