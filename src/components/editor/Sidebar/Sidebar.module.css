@@ -86,6 +86,29 @@
   color: var(--text-primary);
 }
 
+.folderActions {
+  padding: 0 var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.addFolderButton {
+  background: none;
+  border: 1px dashed var(--border-default);
+  color: var(--text-secondary);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.addFolderButton:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 .list {
   flex: 1;
   overflow-y: auto;

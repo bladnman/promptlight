@@ -1,0 +1,139 @@
+/* Wrapper container */
+.wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+/* Focus state for wrapper */
+.wrapper:focus-within {
+  border-color: var(--border-focus);
+}
+
+/* Main editor area - targets ProseMirror container */
+.wrapper :global(.ProseMirror) {
+  flex: 1;
+  padding: var(--space-md);
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-base);
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  outline: none;
+  overflow-y: auto;
+  min-height: 200px;
+}
+
+/* Placeholder styling */
+.isEmpty::before {
+  content: attr(data-placeholder);
+  color: var(--text-muted);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+
+/* Typography - Headers */
+.wrapper :global(.ProseMirror) h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-lg) 0 var(--space-md);
+  line-height: var(--line-height-tight);
+}
+
+.wrapper :global(.ProseMirror) h1:first-child {
+  margin-top: 0;
+}
+
+.wrapper :global(.ProseMirror) h2 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-md) 0 var(--space-sm);
+  line-height: var(--line-height-tight);
+}
+
+.wrapper :global(.ProseMirror) h3 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin: var(--space-md) 0 var(--space-sm);
+  line-height: var(--line-height-tight);
+}
+
+/* Paragraphs */
+.wrapper :global(.ProseMirror) p {
+  margin: 0 0 var(--space-sm);
+}
+
+/* Bold and Italic */
+.wrapper :global(.ProseMirror) strong {
+  font-weight: var(--font-weight-semibold);
+}
+
+.wrapper :global(.ProseMirror) em {
+  font-style: italic;
+}
+
+/* Links */
+.link {
+  color: var(--text-accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Inline code */
+.inlineCode {
+  font-family: var(--font-family-mono);
+  font-size: 0.9em;
+  background: var(--bg-elevated);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  color: var(--accent-secondary);
+}
+
+/* Code blocks */
+.codeBlock {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  background: var(--bg-elevated);
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  margin: var(--space-md) 0;
+  overflow-x: auto;
+  line-height: var(--line-height-normal);
+}
+
+/* Lists */
+.wrapper :global(.ProseMirror) ul,
+.wrapper :global(.ProseMirror) ol {
+  padding-left: var(--space-lg);
+  margin: var(--space-sm) 0;
+}
+
+.wrapper :global(.ProseMirror) li {
+  margin: var(--space-xs) 0;
+}
+
+/* Blockquote */
+.wrapper :global(.ProseMirror) blockquote {
+  border-left: 3px solid var(--accent-primary);
+  padding-left: var(--space-md);
+  margin: var(--space-md) 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Horizontal rule */
+.wrapper :global(.ProseMirror) hr {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: var(--space-lg) 0;
+}
+
+/* Selection highlight */
+.wrapper :global(.ProseMirror) ::selection {
+  background: var(--selection-bg);
+}

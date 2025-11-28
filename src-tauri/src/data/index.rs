@@ -79,3 +79,130 @@ pub fn get_folders() -> Result<Vec<String>, String> {
     let index = load_index()?;
     Ok(index.folders)
 }
+
+/// Add a new folder
+#[tauri::command]
+pub fn add_folder(name: String) -> Result<(), String> {
+    let mut index = load_index()?;
+
+    let folder_name = name.trim().to_lowercase();
+    if folder_name.is_empty() {
+        return Err("Folder name cannot be empty".to_string());
+    }
+
+    if index.folders.contains(&folder_name) {
+        return Err("Folder already exists".to_string());
+    }
+
+    // Create the folder directory
+    let data_dir = get_data_dir();
+    let folder_path = data_dir.join("prompts").join(&folder_name);
+    fs::create_dir_all(&folder_path)
+        .map_err(|e| format!("Failed to create folder directory: {}", e))?;
+
+    // Add to index and save
+    index.folders.push(folder_name);
+    save_index(&index)?;
+
+    Ok(())
+}
+
+/// Rename a folder
+#[tauri::command]
+pub fn rename_folder(old_name: String, new_name: String) -> Result<(), String> {
+    let mut index = load_index()?;
+
+    let old_folder = old_name.trim().to_lowercase();
+    let new_folder = new_name.trim().to_lowercase();
+
+    if new_folder.is_empty() {
+        return Err("Folder name cannot be empty".to_string());
+    }
+
+    if !index.folders.contains(&old_folder) {
+        return Err("Folder does not exist".to_string());
+    }
+
+    if index.folders.contains(&new_folder) {
+        return Err("A folder with that name already exists".to_string());
+    }
+
+    // Rename the folder directory
+    let data_dir = get_data_dir();
+    let old_path = data_dir.join("prompts").join(&old_folder);
+    let new_path = data_dir.join("prompts").join(&new_folder);
+
+    if old_path.exists() {
+        fs::rename(&old_path, &new_path)
+            .map_err(|e| format!("Failed to rename folder directory: {}", e))?;
+    }
+
+    // Update prompts that were in this folder
+    for prompt in &mut index.prompts {
+        if prompt.folder == old_folder {
+            prompt.folder = new_folder.clone();
+        }
+    }
+
+    // Update folders list
+    if let Some(pos) = index.folders.iter().position(|f| f == &old_folder) {
+        index.folders[pos] = new_folder;
+    }
+
+    save_index(&index)?;
+
+    Ok(())
+}
+
+/// Delete a folder (moves prompts to uncategorized)
+#[tauri::command]
+pub fn delete_folder(name: String) -> Result<(), String> {
+    let mut index = load_index()?;
+
+    let folder_name = name.trim().to_lowercase();
+
+    if folder_name == "uncategorized" {
+        return Err("Cannot delete the uncategorized folder".to_string());
+    }
+
+    if !index.folders.contains(&folder_name) {
+        return Err("Folder does not exist".to_string());
+    }
+
+    let data_dir = get_data_dir();
+    let prompts_dir = data_dir.join("prompts");
+    let folder_path = prompts_dir.join(&folder_name);
+    let uncategorized_path = prompts_dir.join("uncategorized");
+
+    // Ensure uncategorized folder exists
+    fs::create_dir_all(&uncategorized_path)
+        .map_err(|e| format!("Failed to create uncategorized folder: {}", e))?;
+
+    // Move prompts to uncategorized
+    for prompt in &mut index.prompts {
+        if prompt.folder == folder_name {
+            let old_file = folder_path.join(&prompt.filename);
+            let new_file = uncategorized_path.join(&prompt.filename);
+
+            if old_file.exists() {
+                fs::rename(&old_file, &new_file)
+                    .map_err(|e| format!("Failed to move prompt file: {}", e))?;
+            }
+
+            prompt.folder = "uncategorized".to_string();
+        }
+    }
+
+    // Remove the folder directory
+    if folder_path.exists() {
+        fs::remove_dir_all(&folder_path)
+            .map_err(|e| format!("Failed to remove folder directory: {}", e))?;
+    }
+
+    // Remove from folders list
+    index.folders.retain(|f| f != &folder_name);
+
+    save_index(&index)?;
+
+    Ok(())
+}

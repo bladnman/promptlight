@@ -114,3 +114,45 @@
 .cancelButton:hover {
   background: var(--selection-bg);
 }
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-right: var(--space-md);
+  padding-right: var(--space-md);
+  border-right: 1px solid var(--border-default);
+}
+
+.actionButton {
+  background: none;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 70px;
+}
+
+.actionButton:hover {
+  background: var(--selection-bg);
+  color: var(--text-primary);
+}
+
+.pasteButton {
+  background: var(--accent-secondary);
+  color: white;
+  border: none;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.pasteButton:hover {
+  opacity: 0.9;
+}
