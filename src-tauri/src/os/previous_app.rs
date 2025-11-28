@@ -2,56 +2,44 @@
 //!
 //! This module captures the frontmost application before Promptlight appears,
 //! then provides functions to return focus and simulate paste.
+//!
+//! Uses native platform APIs (CGEvent + NSRunningApplication on macOS)
+//! instead of AppleScript for better performance and cross-platform support.
 
 use once_cell::sync::Lazy;
-use std::process::Command;
 use std::sync::Mutex;
 
-/// Thread-safe storage for the previously-focused application's bundle identifier
-static PREVIOUS_APP: Lazy<Mutex<Option<String>>> = Lazy::new(|| Mutex::new(None));
+use crate::os::platform::{self, AppId};
+
+/// Thread-safe storage for the previously-focused application
+static PREVIOUS_APP: Lazy<Mutex<Option<AppId>>> = Lazy::new(|| Mutex::new(None));
 
 /// Capture the frontmost app BEFORE showing Promptlight.
 /// This must be called before the launcher window is shown.
-#[cfg(target_os = "macos")]
 pub fn capture_previous_app() -> Result<(), String> {
-    let script = r#"
-        tell application "System Events"
-            set frontApp to first application process whose frontmost is true
-            return bundle identifier of frontApp
-        end tell
-    "#;
+    let tracker = platform::create_focus_tracker();
 
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .output()
-        .map_err(|e| format!("osascript failed: {}", e))?;
-
-    if output.status.success() {
-        let bundle_id = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !bundle_id.is_empty() && bundle_id != "missing value" {
-            println!("[previous_app] Captured: {}", bundle_id);
+    match tracker.capture_focused_app() {
+        Ok(Some(app_id)) => {
+            println!("[previous_app] Captured: {}", app_id.as_str());
             if let Ok(mut guard) = PREVIOUS_APP.lock() {
-                *guard = Some(bundle_id);
+                *guard = Some(app_id);
             }
-        } else {
-            println!("[previous_app] No valid bundle ID captured");
         }
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("[previous_app] osascript failed: {}", stderr);
+        Ok(None) => {
+            println!("[previous_app] No focused app to capture");
+        }
+        Err(e) => {
+            println!("[previous_app] Capture failed: {}", e);
+            return Err(e);
+        }
     }
 
     Ok(())
 }
 
-#[cfg(not(target_os = "macos"))]
-pub fn capture_previous_app() -> Result<(), String> {
-    Ok(())
-}
-
-/// Get the stored previous app bundle identifier
-pub fn get_previous_app() -> Option<String> {
+/// Get the stored previous app identifier
+pub fn get_previous_app() -> Option<AppId> {
     PREVIOUS_APP.lock().ok().and_then(|g| g.clone())
 }
 
@@ -62,11 +50,10 @@ pub fn clear_previous_app() {
     }
 }
 
-/// Activate the previously captured app using AppleScript.
+/// Activate the previously captured app using native platform APIs.
 /// Returns Ok(true) if successful, Ok(false) if no previous app was stored.
-#[cfg(target_os = "macos")]
 pub fn activate_previous_app() -> Result<bool, String> {
-    let bundle_id = match get_previous_app() {
+    let app_id = match get_previous_app() {
         Some(id) => id,
         None => {
             println!("[previous_app] No previous app stored");
@@ -74,82 +61,19 @@ pub fn activate_previous_app() -> Result<bool, String> {
         }
     };
 
-    println!("[previous_app] Activating: {}", bundle_id);
+    println!("[previous_app] Activating: {}", app_id.as_str());
 
-    // Escape any quotes in the bundle ID
-    let escaped = bundle_id.replace("\"", "\\\"");
-
-    let script = format!(
-        r#"
-        try
-            tell application id "{}" to activate
-            return "success"
-        on error errMsg
-            return "error: " & errMsg
-        end try
-    "#,
-        escaped
-    );
-
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(&script)
-        .output()
-        .map_err(|e| format!("osascript failed: {}", e))?;
-
-    let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-
-    if result.starts_with("error") {
-        println!("[previous_app] Activation error: {}", result);
-        Err(result)
-    } else {
-        println!("[previous_app] Activation successful");
-        Ok(true)
-    }
+    let tracker = platform::create_focus_tracker();
+    tracker.activate_app(&app_id)
 }
 
-#[cfg(not(target_os = "macos"))]
-pub fn activate_previous_app() -> Result<bool, String> {
-    Ok(false)
-}
-
-/// Simulate Cmd+V paste keystroke using AppleScript.
-/// Requires Accessibility permission - macOS will prompt on first use.
-#[cfg(target_os = "macos")]
+/// Simulate Cmd+V (macOS) or Ctrl+V (Windows/Linux) paste keystroke.
+/// Requires Accessibility permission on macOS.
 pub fn simulate_paste() -> Result<(), String> {
-    println!("[previous_app] Simulating Cmd+V");
+    println!("[previous_app] Simulating paste keystroke");
 
-    let script = r#"
-        try
-            tell application "System Events"
-                keystroke "v" using command down
-            end tell
-            return "success"
-        on error errMsg
-            return "error: " & errMsg
-        end try
-    "#;
-
-    let output = Command::new("osascript")
-        .arg("-e")
-        .arg(script)
-        .output()
-        .map_err(|e| format!("osascript failed: {}", e))?;
-
-    let result = String::from_utf8_lossy(&output.stdout).trim().to_string();
-
-    if result.starts_with("error") {
-        println!("[previous_app] Paste simulation error: {}", result);
-        Err(result)
-    } else {
-        println!("[previous_app] Paste simulation successful");
-        Ok(())
-    }
-}
-
-#[cfg(not(target_os = "macos"))]
-pub fn simulate_paste() -> Result<(), String> {
-    Err("Not supported on this platform".to_string())
+    let simulator = platform::create_input_simulator();
+    simulator.simulate_paste()
 }
 
 #[cfg(test)]
@@ -164,9 +88,9 @@ mod tests {
 
         // Store a value
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
-            *guard = Some("com.apple.TextEdit".to_string());
+            *guard = Some(AppId::new("com.apple.TextEdit"));
         }
-        assert_eq!(get_previous_app(), Some("com.apple.TextEdit".to_string()));
+        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.TextEdit".to_string()));
 
         // Clear it
         clear_previous_app();
@@ -184,15 +108,15 @@ mod tests {
         clear_previous_app();
 
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
-            *guard = Some("com.apple.Safari".to_string());
+            *guard = Some(AppId::new("com.apple.Safari"));
         }
-        assert_eq!(get_previous_app(), Some("com.apple.Safari".to_string()));
+        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.Safari".to_string()));
 
         // Overwrite
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
-            *guard = Some("com.apple.Notes".to_string());
+            *guard = Some(AppId::new("com.apple.Notes"));
         }
-        assert_eq!(get_previous_app(), Some("com.apple.Notes".to_string()));
+        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.Notes".to_string()));
 
         clear_previous_app();
     }

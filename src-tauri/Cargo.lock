@@ -3035,6 +3035,8 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "cocoa",
+ "core-foundation",
+ "core-graphics",
  "dirs 5.0.1",
  "objc",
  "once_cell",
