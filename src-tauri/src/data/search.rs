@@ -37,7 +37,20 @@ pub fn search_prompts(query: String) -> Result<Vec<SearchResult>, String> {
             })
             .collect();
 
-        results.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap());
+        // Sort by score descending, then by lastUsed descending (most recent first) as tiebreaker
+        results.sort_by(|a, b| {
+            let score_cmp = b.score.partial_cmp(&a.score).unwrap();
+            if score_cmp != std::cmp::Ordering::Equal {
+                return score_cmp;
+            }
+            // Tiebreaker: compare lastUsed timestamps (more recent first)
+            match (&b.prompt.last_used, &a.prompt.last_used) {
+                (Some(b_ts), Some(a_ts)) => b_ts.cmp(a_ts),
+                (Some(_), None) => std::cmp::Ordering::Less,
+                (None, Some(_)) => std::cmp::Ordering::Greater,
+                (None, None) => std::cmp::Ordering::Equal,
+            }
+        });
         results.truncate(MAX_RESULTS);
         return Ok(results);
     }
