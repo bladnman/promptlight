@@ -15,7 +15,28 @@
   border-color: var(--border-focus);
 }
 
-/* Main editor area - targets ProseMirror container */
+/* Plain textarea editor - preserves exact text formatting */
+.textarea {
+  flex: 1;
+  width: 100%;
+  padding: var(--space-md);
+  font-size: var(--font-size-md);
+  font-family: var(--font-family-mono);
+  color: var(--text-primary);
+  line-height: var(--line-height-relaxed);
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  min-height: 200px;
+  overflow-y: auto;
+}
+
+.textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Main editor area - targets ProseMirror container (kept for reference) */
 .wrapper :global(.ProseMirror) {
   flex: 1;
   padding: var(--space-md);

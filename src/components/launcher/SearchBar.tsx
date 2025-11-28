@@ -6,7 +6,7 @@ import styles from './SearchBar.module.css';
 
 export function SearchBar() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { mode, query, promotedPrompt, riderText, setQuery, setRiderText, executeSelected } =
+  const { mode, query, promotedPrompt, riderText, setQuery, setRiderText } =
     useLauncherStore();
 
   // Handle window focus events - focuses input and reloads prompts
