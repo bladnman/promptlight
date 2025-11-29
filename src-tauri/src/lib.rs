@@ -8,7 +8,7 @@ mod os;
 use tauri::{Manager, LogicalPosition};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
-use crate::os::focus::get_focused_app_screen_bounds;
+use crate::os::focus::get_key_window_screen_bounds;
 use crate::os::previous_app;
 
 const WINDOW_WIDTH: f64 = 650.0;
@@ -63,15 +63,11 @@ pub fn run() {
                     if window.is_visible().unwrap_or(false) {
                         let _ = window.hide();
                     } else {
-                        // CAPTURE PREVIOUS APP BEFORE SHOWING PROMPTLIGHT
-                        // This must happen while the other app is still frontmost
-                        if let Err(e) = previous_app::capture_previous_app() {
-                            println!("[shortcut] Warning: Failed to capture previous app: {}", e);
-                        }
+                        // Capture previous app before showing (for paste-back feature)
+                        let _ = previous_app::capture_previous_app();
 
-                        // Try to position window on the monitor with the focused application
-                        let positioned = if let Some(bounds) = get_focused_app_screen_bounds() {
-                            // Center horizontally on the focused app's screen, position 1/4 from top
+                        // Position on the screen with the key window (uses fast native NSScreen API)
+                        let positioned = if let Some(bounds) = get_key_window_screen_bounds() {
                             let x = bounds.x + (bounds.width - WINDOW_WIDTH) / 2.0;
                             let y = bounds.y + bounds.height / 4.0;
                             let _ = window.set_position(LogicalPosition::new(x, y));
