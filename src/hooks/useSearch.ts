@@ -1,45 +1,65 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useLauncherStore } from '../stores/launcherStore';
+import { useLauncherCacheStore } from '../stores/launcherCacheStore';
 import { SEARCH_CONFIG } from '../config/constants';
 import type { SearchResult } from '../types';
 
 /**
- * Hook for debounced search functionality
+ * Hook for debounced search functionality with caching
  */
 export function useSearch() {
   const { query, mode, setResults, setLoading } = useLauncherStore();
+  const {
+    getLaunchCache,
+    setLaunchCache,
+    getSearchCache,
+    setSearchCache,
+  } = useLauncherCacheStore();
   const debounceRef = useRef<number | null>(null);
 
   const performSearch = useCallback(
     async (searchQuery: string) => {
-      if (searchQuery.length < SEARCH_CONFIG.MIN_QUERY_LENGTH) {
-        // If query is empty, get all prompts sorted by usage
-        try {
-          const results = await invoke<SearchResult[]>('search_prompts', {
-            query: '',
-          });
-          setResults(results);
-        } catch (error) {
-          console.error('Search error:', error);
-          setResults([]);
+      const isEmptyQuery = searchQuery.length < SEARCH_CONFIG.MIN_QUERY_LENGTH;
+      const effectiveQuery = isEmptyQuery ? '' : searchQuery;
+
+      // Check cache first
+      if (isEmptyQuery) {
+        const cached = getLaunchCache();
+        if (cached) {
+          setResults(cached);
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
+      } else {
+        const cached = getSearchCache(effectiveQuery);
+        if (cached) {
+          setResults(cached);
+          setLoading(false);
+          return;
+        }
       }
 
+      // No cache hit, fetch from backend
       try {
         const results = await invoke<SearchResult[]>('search_prompts', {
-          query: searchQuery,
+          query: effectiveQuery,
         });
         setResults(results);
+
+        // Cache the results
+        if (isEmptyQuery) {
+          setLaunchCache(results);
+        } else {
+          setSearchCache(effectiveQuery, results);
+        }
       } catch (error) {
         console.error('Search error:', error);
         setResults([]);
       }
       setLoading(false);
     },
-    [setResults, setLoading]
+    [setResults, setLoading, getLaunchCache, setLaunchCache, getSearchCache, setSearchCache]
   );
 
   useEffect(() => {
@@ -65,7 +85,7 @@ export function useSearch() {
     };
   }, [query, mode, performSearch, setLoading]);
 
-  // Initial load
+  // Initial load (will use cache if available)
   useEffect(() => {
     performSearch('');
   }, [performSearch]);

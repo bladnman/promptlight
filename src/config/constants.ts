@@ -75,6 +75,21 @@ export const AUTO_SAVE_CONFIG = {
   DEBOUNCE_MS: 1000,
 } as const;
 
+/** Launcher cache configuration */
+export const CACHE_CONFIG = {
+  /**
+   * TTL for search results cache (ms)
+   * When a search is performed, results are cached for this duration.
+   * Opening/closing the launcher within this window shows cached results.
+   * Set to 10000 (10s) for dev, 60000 (60s) for production.
+   */
+  SEARCH_RESULTS_TTL_MS: 10000,
+  /**
+   * Launch results (empty query) never expire within a session.
+   * They're only invalidated by editor save/create/delete operations.
+   */
+} as const;
+
 /** Sidebar configuration */
 export const SIDEBAR_CONFIG = {
   /** Debounce delay for search filter (ms) */

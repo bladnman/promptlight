@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
+import { useLauncherCacheStore } from './launcherCacheStore';
 
 // Extract trailing whitespace from content (newlines at end)
 function getTrailingWhitespace(str: string): string {
@@ -237,6 +238,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         autoSaveStatus: 'saved',
       });
 
+      // Invalidate launcher cache so next panel open shows updated data
+      useLauncherCacheStore.getState().invalidateAll();
+
       // Refresh prompts list
       get().loadPrompts();
 
@@ -272,6 +276,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         editedPrompt: null,
         isDirty: false,
       });
+
+      // Invalidate launcher cache so next panel open shows updated data
+      useLauncherCacheStore.getState().invalidateAll();
 
       // Refresh prompts list
       get().loadPrompts();
@@ -416,6 +423,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     try {
       await invoke('rename_folder', { oldName, newName: newFolder });
+      // Invalidate launcher cache since folder names affect display
+      useLauncherCacheStore.getState().invalidateAll();
       await get().loadPrompts();
       set({ editingFolder: null });
       return true;
@@ -429,6 +438,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   deleteFolder: async (name: string) => {
     try {
       await invoke('delete_folder', { name });
+      // Invalidate launcher cache since prompts may have moved
+      useLauncherCacheStore.getState().invalidateAll();
       await get().loadPrompts();
       return true;
     } catch (error) {

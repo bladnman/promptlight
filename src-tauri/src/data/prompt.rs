@@ -32,7 +32,9 @@ pub fn save_prompt(prompt: Prompt) -> Result<PromptMetadata, String> {
     let metadata = if let Some(idx) = existing_idx {
         // Update existing
         let mut updated = prompt.metadata.clone();
-        updated.updated = now;
+        updated.updated = now.clone();
+        // Set last_used on edit so edited prompts appear at top of recency list
+        updated.last_used = Some(now);
         index.prompts[idx] = updated.clone();
         updated
     } else {
@@ -56,7 +58,8 @@ pub fn save_prompt(prompt: Prompt) -> Result<PromptMetadata, String> {
             description: prompt.metadata.description,
             filename,
             use_count: 0,
-            last_used: None,
+            // Set last_used on create so new prompts appear at top of recency list
+            last_used: Some(now.clone()),
             created: now.clone(),
             updated: now,
             icon: prompt.metadata.icon,
