@@ -14,22 +14,19 @@
 }
 
 html,
-body {
+body,
+#root {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: transparent !important;
+  background-color: transparent !important;
   font-family: var(--font-family-base);
   font-size: var(--font-size-md);
   line-height: var(--line-height-normal);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  height: 100%;
-  width: 100%;
 }
 
 /* Focus styles */

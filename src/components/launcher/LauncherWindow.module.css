@@ -5,43 +5,5 @@
   max-height: 100vh;
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
   overflow: hidden;
-}
-
-.header {
-  position: relative;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  height: 28px;
-  padding: 0 var(--space-sm);
-  flex-shrink: 0;
-  cursor: grab;
-}
-
-.header:active {
-  cursor: grabbing;
-}
-
-.closeButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--bg-elevated);
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-
-.closeButton:hover {
-  background: var(--status-error);
-  color: var(--text-primary);
 }

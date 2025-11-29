@@ -1,3 +1,4 @@
+#[cfg(target_os = "macos")]
 #[macro_use]
 extern crate objc;
 
@@ -19,6 +20,34 @@ pub fn run() {
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
+            // Set up transparent background for macOS
+            #[cfg(target_os = "macos")]
+            {
+                use cocoa::appkit::NSWindow;
+                use cocoa::base::{id, nil};
+                use cocoa::foundation::NSString;
+
+                if let Some(window) = app.get_webview_window("launcher") {
+                    // First, disable the webview's background drawing
+                    let _ = window.with_webview(|webview| {
+                        unsafe {
+                            let wv: id = webview.inner().cast();
+                            let no: id = msg_send![class!(NSNumber), numberWithBool: false];
+                            let key = NSString::alloc(nil).init_str("drawsBackground");
+                            let _: () = msg_send![wv, setValue: no forKey: key];
+                        }
+                    });
+
+                    // Then set the window background to clear
+                    let ns_window = window.ns_window().unwrap() as id;
+                    unsafe {
+                        let clear_color: id = cocoa::appkit::NSColor::clearColor(nil);
+                        NSWindow::setBackgroundColor_(ns_window, clear_color);
+                        let _: () = msg_send![ns_window, setOpaque: false];
+                    }
+                }
+            }
+
             // Register global shortcut: Cmd+Shift+Space
             let shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::Space);
             let app_handle = app.handle().clone();
