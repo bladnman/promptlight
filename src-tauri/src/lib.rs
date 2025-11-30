@@ -7,7 +7,7 @@ mod data;
 mod os;
 
 use std::sync::Arc;
-use tauri::{Manager, LogicalPosition};
+use tauri::{Manager, LogicalPosition, RunEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_autostart::MacosLauncher;
 
@@ -183,6 +183,38 @@ pub fn run() {
             auth::get_current_auth,
             auth::sign_out,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            // Handle dock icon click on macOS
+            if let RunEvent::Reopen { .. } = event {
+                // Check if editor window exists and is visible
+                if let Some(editor) = app_handle.get_webview_window("editor") {
+                    if editor.is_visible().unwrap_or(false) {
+                        let _ = editor.set_focus();
+                        return;
+                    }
+                }
+
+                // Otherwise show the launcher
+                if let Some(launcher) = app_handle.get_webview_window("launcher") {
+                    // Position and show launcher (similar to global shortcut logic)
+                    let positioned = if let Some(bounds) = get_key_window_screen_bounds() {
+                        let x = bounds.x + (bounds.width - WINDOW_WIDTH) / 2.0;
+                        let y = bounds.y + bounds.height / 4.0;
+                        let _ = launcher.set_position(LogicalPosition::new(x, y));
+                        true
+                    } else {
+                        false
+                    };
+
+                    if !positioned {
+                        let _ = launcher.center();
+                    }
+
+                    let _ = launcher.show();
+                    let _ = launcher.set_focus();
+                }
+            }
+        });
 }
