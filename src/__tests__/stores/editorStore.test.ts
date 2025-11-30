@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useEditorStore } from '../../stores/editorStore';
 import { getMockInvoke } from '../setup';
 import type { Prompt, PromptIndex, PromptMetadata } from '../../types';
