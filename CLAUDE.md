@@ -16,6 +16,7 @@ npm run install:local      # Build release and install to /Applications (macOS)
 # Testing
 npm run test               # Run all tests once
 npm run test:watch         # Run tests in watch mode
+npm run test:coverage      # Run tests with coverage report
 
 # Run a single test file
 npx vitest run src/__tests__/stores/editorStore.test.ts
@@ -23,18 +24,31 @@ npx vitest run src/__tests__/stores/editorStore.test.ts
 # Run tests matching a pattern
 npx vitest run -t "should load prompts"
 
+# Linting
+npm run lint               # Run ESLint
+npm run lint:fix           # Run ESLint with auto-fix
+
+# Full validation (run before committing)
+npm run check              # Runs: lint → build → test
+
 # Rust tests
 cd src-tauri && cargo test
 ```
 
 ## Code Quality Requirements
 
-**Before committing any code, ensure:**
-1. `npm run test` passes with no failures
-2. `npm run build` completes without TypeScript errors
-3. No unused imports, variables, or dead code
+**Before committing any code, run `npm run check`** which validates:
+1. ESLint passes (warnings ok, errors fail)
+2. TypeScript compiles without errors
+3. All tests pass
 
-The codebase uses strict TypeScript (`noUnusedLocals`, `noUnusedParameters`). The build will fail on unused code.
+**TypeScript Strictness**: The build enforces `noUnusedLocals` and `noUnusedParameters`. Unused code will fail the build.
+
+**ESLint Rules**: Key rules enforced:
+- No unused variables (prefix with `_` to ignore)
+- `console.log` discouraged (use `console.error` or `console.warn` for actual issues)
+- Prefer `const` over `let`
+- Use `===` instead of `==`
 
 ## macOS Performance Critical
 
@@ -120,17 +134,73 @@ When you complete your work and want the user to review it, run the `/dev` slash
 
 Tests live in `src/__tests__/` and use Vitest + React Testing Library.
 
+### Test Infrastructure
+
 **Test setup** (`src/__tests__/setup.ts`):
 - Mocks `@tauri-apps/api/core` invoke function
 - Mocks `@tauri-apps/api/event` listen/emit
 - Use `getMockInvoke()` to access the mock in tests
 
-**What to test**:
-- Store logic (state transitions, async operations)
-- Critical user flows
-- Edge cases in business logic
+**Coverage reporting** (`npm run test:coverage`):
+- Generates HTML report in `coverage/` directory
+- Enforces minimum thresholds (see `vitest.config.ts`)
+- Current focus: stores at 100%, components/hooks lower priority
 
-**Test file naming**: `*.test.ts` or `*.test.tsx` in `src/__tests__/`
+### What to Test
+
+**High priority** (should have comprehensive tests):
+- Store logic (state transitions, async operations, error handling)
+- Business logic and data transformations
+- Edge cases that could cause regressions
+
+**Medium priority** (test critical paths):
+- Component interactions (clicks, keyboard events)
+- Form validation
+
+**Lower priority** (test if time permits):
+- Pure presentational components
+- Styling/layout
+
+### Writing Store Tests
+
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useMyStore } from '../../stores/myStore';
+import { getMockInvoke } from '../setup';
+
+describe('myStore', () => {
+  beforeEach(() => {
+    useMyStore.getState().reset(); // Reset to initial state
+    getMockInvoke().mockReset();    // Clear mock call history
+  });
+
+  it('should load data from backend', async () => {
+    getMockInvoke().mockResolvedValueOnce({ data: 'test' });
+
+    await useMyStore.getState().loadData();
+
+    expect(useMyStore.getState().data).toBe('test');
+  });
+});
+```
+
+### Test File Organization
+
+```
+src/__tests__/
+├── setup.ts              # Global test setup and mocks
+├── stores/               # Store tests (high coverage)
+│   ├── editorStore.test.ts
+│   ├── launcherStore.test.ts
+│   ├── launcherCacheStore.test.ts
+│   ├── settingsStore.test.ts
+│   └── authStore.test.ts
+└── components/           # Component tests
+    ├── IconButton.test.tsx
+    └── InlineEdit.test.tsx
+```
+
+**Test file naming**: `*.test.ts` or `*.test.tsx` mirroring source structure
 
 ## File Organization
 
