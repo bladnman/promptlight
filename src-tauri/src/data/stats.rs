@@ -1,8 +1,7 @@
 use super::index;
 use chrono::Utc;
 
-/// Record usage of a prompt (increment count and update lastUsed)
-#[tauri::command]
+/// Record usage of a prompt (legacy - use commands::record_usage)
 pub fn record_usage(id: String) -> Result<(), String> {
     let mut index = index::load_index()?;
 

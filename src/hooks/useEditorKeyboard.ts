@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEditorStore } from '../stores/editorStore';
+import { HOTKEYS } from '../config/constants';
 
 /**
  * Keyboard shortcuts for the editor window
  */
 export function useEditorKeyboard() {
-  const { save, createNew, isDirty } = useEditorStore();
+  const { save, createNew, isDirty, currentView, setView } = useEditorStore();
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
@@ -43,10 +44,16 @@ export function useEditorKeyboard() {
           e.preventDefault();
           createNew();
           break;
+
+        case HOTKEYS.OPEN_SETTINGS:
+          // Cmd+, - Toggle settings
+          e.preventDefault();
+          setView(currentView === 'settings' ? 'prompts' : 'settings');
+          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [save, createNew, isDirty]);
+  }, [save, createNew, isDirty, currentView, setView]);
 }

@@ -1,10 +1,9 @@
-use super::{get_data_dir, index, Prompt, PromptMetadata};
+use super::{get_anonymous_data_dir, index, Prompt, PromptMetadata};
 use chrono::Utc;
 use std::fs;
 use uuid::Uuid;
 
-/// Get a prompt by ID (loads content from file)
-#[tauri::command]
+/// Get a prompt by ID (legacy - use commands::get_prompt)
 pub fn get_prompt(id: String) -> Result<Prompt, String> {
     let index = index::load_index()?;
 
@@ -20,8 +19,7 @@ pub fn get_prompt(id: String) -> Result<Prompt, String> {
     Ok(Prompt { metadata, content })
 }
 
-/// Save a prompt (creates or updates)
-#[tauri::command]
+/// Save a prompt (legacy - use commands::save_prompt)
 pub fn save_prompt(prompt: Prompt) -> Result<PromptMetadata, String> {
     let mut index = index::load_index()?;
     let now = Utc::now().to_rfc3339();
@@ -84,8 +82,7 @@ pub fn save_prompt(prompt: Prompt) -> Result<PromptMetadata, String> {
     Ok(metadata)
 }
 
-/// Delete a prompt
-#[tauri::command]
+/// Delete a prompt (legacy - use commands::delete_prompt)
 pub fn delete_prompt(id: String) -> Result<(), String> {
     let mut index = index::load_index()?;
 
@@ -98,7 +95,7 @@ pub fn delete_prompt(id: String) -> Result<(), String> {
     let metadata = index.prompts.remove(idx);
 
     // Delete the file
-    let file_path = get_data_dir()
+    let file_path = get_anonymous_data_dir()
         .join("prompts")
         .join(&metadata.folder)
         .join(&metadata.filename);
@@ -115,7 +112,7 @@ pub fn delete_prompt(id: String) -> Result<(), String> {
 
 /// Read prompt content from file
 pub fn read_prompt_content(folder: &str, filename: &str) -> Result<String, String> {
-    let file_path = get_data_dir().join("prompts").join(folder).join(filename);
+    let file_path = get_anonymous_data_dir().join("prompts").join(folder).join(filename);
 
     if !file_path.exists() {
         return Ok(String::new());
@@ -126,7 +123,7 @@ pub fn read_prompt_content(folder: &str, filename: &str) -> Result<String, Strin
 
 /// Write prompt content to file
 fn write_prompt_content(folder: &str, filename: &str, content: &str) -> Result<(), String> {
-    let folder_path = get_data_dir().join("prompts").join(folder);
+    let folder_path = get_anonymous_data_dir().join("prompts").join(folder);
     fs::create_dir_all(&folder_path)
         .map_err(|e| format!("Failed to create folder: {}", e))?;
 

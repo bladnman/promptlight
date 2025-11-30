@@ -1,7 +1,16 @@
+pub mod commands;
+pub mod firestore;
 pub mod index;
+pub mod local;
 pub mod prompt;
 pub mod search;
+pub mod settings;
 pub mod stats;
+pub mod store;
+pub mod sync;
+
+pub use local::LocalDataStore;
+pub use store::DataStore;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -130,10 +139,20 @@ pub fn create_sample_prompts() -> (PromptIndex, Vec<(String, String)>) {
     (PromptIndex { prompts, folders, folder_meta: None }, files)
 }
 
-/// Get the data directory path (~/.prompt-launcher)
-pub fn get_data_dir() -> PathBuf {
+/// Get the base data directory path (~/.prompt-launcher)
+pub fn get_base_data_dir() -> PathBuf {
     dirs::home_dir()
         .expect("Could not find home directory")
         .join(".prompt-launcher")
+}
+
+/// Get the anonymous (pre-auth) data directory path
+pub fn get_anonymous_data_dir() -> PathBuf {
+    get_base_data_dir().join("local")
+}
+
+/// Get the data directory path for a specific user
+pub fn get_user_data_dir(user_id: &str) -> PathBuf {
+    get_base_data_dir().join("users").join(user_id)
 }
 

@@ -1,9 +1,9 @@
-use super::{create_sample_prompts, get_data_dir, PromptIndex};
+use super::{create_sample_prompts, get_anonymous_data_dir, PromptIndex};
 use std::fs;
 
 /// Load the index from disk, seeding sample prompts if empty
 pub fn load_index() -> Result<PromptIndex, String> {
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     let index_path = data_dir.join("index.json");
 
     if !index_path.exists() {
@@ -27,7 +27,7 @@ pub fn load_index() -> Result<PromptIndex, String> {
 
 /// Seed sample prompts for new users
 fn seed_sample_prompts() -> Result<PromptIndex, String> {
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     let prompts_dir = data_dir.join("prompts");
 
     // Create sample prompts
@@ -55,7 +55,7 @@ fn seed_sample_prompts() -> Result<PromptIndex, String> {
 
 /// Save the index to disk
 pub fn save_index(index: &PromptIndex) -> Result<(), String> {
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     fs::create_dir_all(&data_dir)
         .map_err(|e| format!("Failed to create data directory: {}", e))?;
 
@@ -67,21 +67,7 @@ pub fn save_index(index: &PromptIndex) -> Result<(), String> {
         .map_err(|e| format!("Failed to write index: {}", e))
 }
 
-/// Get the full index
-#[tauri::command]
-pub fn get_index() -> Result<PromptIndex, String> {
-    load_index()
-}
-
-/// Get all folders
-#[tauri::command]
-pub fn get_folders() -> Result<Vec<String>, String> {
-    let index = load_index()?;
-    Ok(index.folders)
-}
-
-/// Add a new folder
-#[tauri::command]
+/// Add a new folder (legacy - use commands::add_folder)
 pub fn add_folder(name: String) -> Result<(), String> {
     let mut index = load_index()?;
 
@@ -95,7 +81,7 @@ pub fn add_folder(name: String) -> Result<(), String> {
     }
 
     // Create the folder directory
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     let folder_path = data_dir.join("prompts").join(&folder_name);
     fs::create_dir_all(&folder_path)
         .map_err(|e| format!("Failed to create folder directory: {}", e))?;
@@ -107,8 +93,7 @@ pub fn add_folder(name: String) -> Result<(), String> {
     Ok(())
 }
 
-/// Rename a folder
-#[tauri::command]
+/// Rename a folder (legacy - use commands::rename_folder)
 pub fn rename_folder(old_name: String, new_name: String) -> Result<(), String> {
     let mut index = load_index()?;
 
@@ -128,7 +113,7 @@ pub fn rename_folder(old_name: String, new_name: String) -> Result<(), String> {
     }
 
     // Rename the folder directory
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     let old_path = data_dir.join("prompts").join(&old_folder);
     let new_path = data_dir.join("prompts").join(&new_folder);
 
@@ -154,8 +139,7 @@ pub fn rename_folder(old_name: String, new_name: String) -> Result<(), String> {
     Ok(())
 }
 
-/// Delete a folder (moves prompts to uncategorized)
-#[tauri::command]
+/// Delete a folder (legacy - use commands::delete_folder)
 pub fn delete_folder(name: String) -> Result<(), String> {
     let mut index = load_index()?;
 
@@ -169,7 +153,7 @@ pub fn delete_folder(name: String) -> Result<(), String> {
         return Err("Folder does not exist".to_string());
     }
 
-    let data_dir = get_data_dir();
+    let data_dir = get_anonymous_data_dir();
     let prompts_dir = data_dir.join("prompts");
     let folder_path = prompts_dir.join(&folder_name);
     let uncategorized_path = prompts_dir.join("uncategorized");
