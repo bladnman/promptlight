@@ -27,12 +27,43 @@ pub struct SyncSettings {
     pub last_sync: Option<String>,
 }
 
+/// Appearance settings
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppearanceSettings {
+    /// Theme: "dark", "light", or "auto"
+    #[serde(default = "default_theme")]
+    pub theme: String,
+    /// Accent color name (e.g., "avocado", "forest", "ocean")
+    #[serde(default = "default_accent_color")]
+    pub accent_color: String,
+}
+
+fn default_theme() -> String {
+    "dark".to_string()
+}
+
+fn default_accent_color() -> String {
+    "avocado".to_string()
+}
+
+impl Default for AppearanceSettings {
+    fn default() -> Self {
+        Self {
+            theme: default_theme(),
+            accent_color: default_accent_color(),
+        }
+    }
+}
+
 /// Complete application settings
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct AppSettings {
     pub general: GeneralSettings,
     pub sync: SyncSettings,
+    #[serde(default)]
+    pub appearance: AppearanceSettings,
 }
 
 impl AppSettings {

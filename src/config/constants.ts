@@ -270,3 +270,72 @@ export const DEFAULT_PROMPT_COLOR: PromptColorName = 'blue';
 /** Default icon and color for folders */
 export const DEFAULT_FOLDER_ICON: PromptIconName = 'folder';
 export const DEFAULT_FOLDER_COLOR: PromptColorName = 'gray';
+
+/**
+ * App accent colors - curated set that complements the avocado icon
+ * Icon colors: dark avocado #486325, light lime #CFD886
+ */
+export const ACCENT_COLORS = {
+  avocado: {
+    name: 'Avocado',
+    primary: '#7FA04E',
+    secondary: '#648339',
+    muted: '#4D6530',
+    subtle: 'rgba(127, 160, 78, 0.15)',
+    pill: '#4D6530',
+    pillText: '#E4ECBC',
+  },
+  forest: {
+    name: 'Forest',
+    primary: '#2D7A4E',
+    secondary: '#236B3E',
+    muted: '#1A5C2E',
+    subtle: 'rgba(45, 122, 78, 0.15)',
+    pill: '#1A5C2E',
+    pillText: '#D1FAE5',
+  },
+  ocean: {
+    name: 'Ocean',
+    primary: '#0891B2',
+    secondary: '#0E7490',
+    muted: '#155E75',
+    subtle: 'rgba(8, 145, 178, 0.15)',
+    pill: '#155E75',
+    pillText: '#CFFAFE',
+  },
+  slate: {
+    name: 'Slate',
+    primary: '#64748B',
+    secondary: '#475569',
+    muted: '#334155',
+    subtle: 'rgba(100, 116, 139, 0.15)',
+    pill: '#334155',
+    pillText: '#E2E8F0',
+  },
+  amber: {
+    name: 'Amber',
+    primary: '#D97706',
+    secondary: '#B45309',
+    muted: '#92400E',
+    subtle: 'rgba(217, 119, 6, 0.15)',
+    pill: '#92400E',
+    pillText: '#FEF3C7',
+  },
+  violet: {
+    name: 'Violet',
+    primary: '#7C3AED',
+    secondary: '#6D28D9',
+    muted: '#5B21B6',
+    subtle: 'rgba(124, 58, 237, 0.15)',
+    pill: '#5B21B6',
+    pillText: '#EDE9FE',
+  },
+} as const;
+
+export type AccentColorName = keyof typeof ACCENT_COLORS;
+export const DEFAULT_ACCENT_COLOR: AccentColorName = 'avocado';
+
+/** Theme options */
+export const THEME_OPTIONS = ['dark', 'light', 'auto'] as const;
+export type ThemeOption = (typeof THEME_OPTIONS)[number];
+export const DEFAULT_THEME: ThemeOption = 'dark';
