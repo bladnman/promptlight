@@ -2,7 +2,6 @@
   width: 280px;
   min-width: 280px;
   background: var(--bg-secondary);
-  border-right: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
   transition: width var(--transition-normal), min-width var(--transition-normal);
@@ -12,7 +11,6 @@
   width: 40px;
   min-width: 40px;
   background: var(--bg-secondary);
-  border-right: 1px solid var(--border-default);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -40,12 +38,12 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-md);
-  border-bottom: 1px solid var(--border-default);
 }
 
 .title {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tight);
   margin: 0;
 }
 
@@ -55,19 +53,23 @@
 }
 
 .newButton {
-  background: var(--accent-primary);
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: transparent;
+  color: var(--text-secondary);
   border: none;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: opacity var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .newButton:hover {
-  opacity: 0.9;
+  color: var(--accent-primary);
+  background: var(--selection-bg);
 }
 
 .collapseButton {
@@ -93,20 +95,19 @@
 
 .addFolderButton {
   background: none;
-  border: 1px dashed var(--border-default);
-  color: var(--text-secondary);
+  border: none;
+  color: var(--text-muted);
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: border-color var(--transition-fast), color var(--transition-fast);
+  transition: color var(--transition-fast);
 }
 
 .addFolderButton:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+  color: var(--text-secondary);
 }
 
 .list {

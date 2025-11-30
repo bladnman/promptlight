@@ -1,0 +1,46 @@
+/* Icon-only button - minimal, subtle */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.button:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--selection-bg);
+}
+
+.button:active:not(:disabled) {
+  background: var(--active-bg);
+}
+
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Danger variant - red on hover */
+.danger:hover:not(:disabled) {
+  color: var(--status-error);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* Small size variant */
+.sm {
+  width: 28px;
+  height: 28px;
+}

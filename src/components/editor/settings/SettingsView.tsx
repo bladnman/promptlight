@@ -109,7 +109,7 @@ function GeneralSection({ autoLaunch, onAutoLaunchChange }: GeneralSectionProps)
             Launch at startup
           </div>
           <div className={styles.settingHint}>
-            Automatically start Promptlight when you log in.
+            Automatically start PromptLight when you log in.
           </div>
         </div>
         <label className={styles.toggle}>

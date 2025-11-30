@@ -37,10 +37,11 @@
 
 .name {
   flex: 1;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-  text-transform: capitalize;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -49,9 +50,6 @@
 .count {
   font-size: var(--font-size-xs);
   color: var(--text-muted);
-  background: var(--selection-bg);
-  padding: 2px var(--space-xs);
-  border-radius: var(--radius-sm);
 }
 
 .count.empty {

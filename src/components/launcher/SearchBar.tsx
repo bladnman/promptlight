@@ -55,6 +55,7 @@ export function SearchBar() {
         autoCapitalize="off"
         spellCheck={false}
       />
+      <img src="/app-icon.png" alt="" className={styles.appIcon} />
     </div>
   );
 }

@@ -1,0 +1,66 @@
+/* Base styles for both display and input states */
+.display,
+.input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast);
+  cursor: text;
+}
+
+/* Display state (not editing) */
+.display {
+  min-height: 1.4em;
+}
+
+.display:hover {
+  background: var(--editable-hover-bg);
+}
+
+.display:focus {
+  outline: none;
+  background: var(--editable-hover-bg);
+}
+
+/* Input state (editing) */
+.input {
+  outline: none;
+  background: var(--editable-focus-bg);
+  box-shadow: 0 0 0 2px var(--border-focus);
+}
+
+.input::placeholder {
+  color: var(--text-muted);
+}
+
+/* Placeholder styling for display state */
+.placeholder {
+  color: var(--text-muted);
+}
+
+/* Title variant - Display typography */
+.title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--line-height-tight);
+  color: var(--text-primary);
+}
+
+.title.placeholder {
+  color: var(--text-muted);
+}
+
+/* Body variant - Secondary text */
+.body {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-relaxed);
+  color: var(--text-secondary);
+}
+
+.body.placeholder {
+  color: var(--text-muted);
+}

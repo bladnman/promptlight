@@ -39,8 +39,9 @@
 .name {
   flex: 1;
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
   color: var(--text-primary);
+  line-height: var(--line-height-normal);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -50,4 +51,26 @@
   flex-shrink: 0;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+}
+
+/* More actions button - appears on hover */
+.moreButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.moreButton:hover {
+  background: var(--active-bg);
+  color: var(--text-primary);
 }

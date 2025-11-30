@@ -11,11 +11,19 @@
   background: transparent;
   border: none;
   color: var(--text-primary);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
   font-family: var(--font-family-base);
+  font-weight: var(--font-weight-normal);
   line-height: var(--line-height-normal);
 }
 
 .input::placeholder {
   color: var(--text-muted);
+}
+
+.appIcon {
+  width: 36px;
+  height: 36px;
+  opacity: 0.8;
+  flex-shrink: 0;
 }

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { MoreHorizontal } from 'lucide-react';
 import type { PromptMetadata } from '../../../types';
 import { Icon } from '../../common/Icon';
 import { formatCompactNumber } from '../../../utils/format';
@@ -8,24 +10,48 @@ interface PromptListItemProps {
   prompt: PromptMetadata;
   isSelected: boolean;
   onClick: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
-export function PromptListItem({ prompt, isSelected, onClick }: PromptListItemProps) {
+export function PromptListItem({ prompt, isSelected, onClick, onContextMenu }: PromptListItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const icon = prompt.icon || DEFAULT_PROMPT_ICON;
   const color = prompt.color || DEFAULT_PROMPT_COLOR;
   const colorValue = PROMPT_COLORS[color];
+
+  const handleMoreClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Trigger context menu at click position
+    if (onContextMenu) {
+      onContextMenu(e);
+    }
+  };
 
   return (
     <button
       className={`${styles.item} ${isSelected ? styles.selected : ''}`}
       onClick={onClick}
+      onContextMenu={onContextMenu}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <span className={styles.icon} style={{ color: colorValue }}>
         <Icon name={icon} size={16} />
       </span>
       <span className={styles.name}>{prompt.name}</span>
-      {prompt.useCount > 0 && (
-        <span className={styles.useCount}>{formatCompactNumber(prompt.useCount)}</span>
+
+      {isHovered && !isSelected ? (
+        <button
+          className={styles.moreButton}
+          onClick={handleMoreClick}
+          title="More actions"
+        >
+          <MoreHorizontal size={14} />
+        </button>
+      ) : (
+        prompt.useCount > 0 && (
+          <span className={styles.useCount}>{formatCompactNumber(prompt.useCount)}</span>
+        )
       )}
     </button>
   );

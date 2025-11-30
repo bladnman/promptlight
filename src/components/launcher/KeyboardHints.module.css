@@ -13,7 +13,9 @@
   align-items: center;
   gap: var(--space-xs);
   color: var(--text-muted);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--tracking-wide);
 }
 
 .hint kbd {

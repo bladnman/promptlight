@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { LauncherWindow } from './components/launcher';
 import { EditorWindow } from './components/editor';
-import { useLauncher } from './hooks';
+import { useLauncher, useUIScale } from './hooks';
 
 type WindowType = 'launcher' | 'editor' | null;
 
 function App() {
   const [windowType, setWindowType] = useState<WindowType>(null);
+
+  // Enable Cmd+/Cmd- UI scaling
+  useUIScale();
 
   useEffect(() => {
     // Detect window type from URL parameters
