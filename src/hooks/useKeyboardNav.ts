@@ -104,6 +104,15 @@ export function useKeyboardNav() {
         return;
       }
 
+      // Cmd+, - Open settings
+      if ((e.metaKey || e.ctrlKey) && e.key === HOTKEYS.OPEN_SETTINGS) {
+        e.preventDefault();
+        getCurrentScreenBounds().then((screenBounds) => {
+          invoke('open_editor_window', { promptId: null, screenBounds, view: 'settings' });
+        });
+        return;
+      }
+
       // Shift+Enter - Open editor for selected prompt
       if (e.shiftKey && e.key === 'Enter') {
         e.preventDefault();

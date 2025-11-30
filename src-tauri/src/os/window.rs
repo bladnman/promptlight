@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use tauri::{AppHandle, Emitter, LogicalPosition, Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
 /// Screen bounds passed from frontend for window positioning
 #[derive(Debug, Clone, Deserialize)]
@@ -12,15 +12,18 @@ pub struct ScreenBounds {
 
 /// Open the editor window, optionally loading a specific prompt
 /// If screen_bounds is provided, the window will be centered on that screen
+/// view parameter can be "prompts" (default) or "settings"
 #[tauri::command]
 pub async fn open_editor_window(
     app: AppHandle,
     prompt_id: Option<String>,
     screen_bounds: Option<ScreenBounds>,
+    view: Option<String>,
 ) -> Result<(), String> {
     let label = "editor";
+    let view_mode = view.as_deref().unwrap_or("prompts");
 
-    // If window already exists, show it and optionally emit event to load prompt
+    // If window already exists, show it and optionally emit event to load prompt or switch view
     if let Some(window) = app.get_webview_window(label) {
         window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
@@ -29,14 +32,24 @@ pub async fn open_editor_window(
         if let Some(id) = prompt_id {
             window.emit("load-prompt", id).map_err(|e| e.to_string())?;
         }
+
+        // Emit event to switch view if settings requested
+        if view_mode == "settings" {
+            window.emit("switch-view", "settings").map_err(|e| e.to_string())?;
+        }
         return Ok(());
     }
 
     // Build URL with window type parameter and optional prompt ID
-    let url = match &prompt_id {
+    let mut url = match &prompt_id {
         Some(id) => format!("index.html?window=editor&id={}", id),
         None => "index.html?window=editor".to_string(),
     };
+
+    // Add view parameter if settings
+    if view_mode == "settings" {
+        url.push_str("&view=settings");
+    }
 
     let window_width = 1000.0;
     let window_height = 700.0;

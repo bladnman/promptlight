@@ -17,6 +17,8 @@ export const HOTKEYS = {
   NAVIGATE_UP: 'ArrowUp',
   /** Navigate down in results */
   NAVIGATE_DOWN: 'ArrowDown',
+  /** Open settings (Cmd+,) */
+  OPEN_SETTINGS: ',',
 } as const;
 
 /** Search configuration */
