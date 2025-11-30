@@ -8,12 +8,11 @@ mod os;
 
 use std::sync::Arc;
 use tauri::{Manager, LogicalPosition, RunEvent};
-use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 use tauri_plugin_autostart::MacosLauncher;
 
 use crate::data::sync::{SyncService, SyncServiceState};
 use crate::os::focus::get_key_window_screen_bounds;
-use crate::os::previous_app;
+use crate::os::hotkey::{HotkeyState, init_hotkey_from_settings};
 
 const WINDOW_WIDTH: f64 = 650.0;
 
@@ -57,6 +56,7 @@ pub fn run() {
             Some(vec!["--autostart"]),
         ))
         .manage(sync_service)
+        .manage(HotkeyState::default())
         .setup(|app| {
             // Set up transparent background for macOS
             #[cfg(target_os = "macos")]
@@ -86,65 +86,11 @@ pub fn run() {
                 }
             }
 
-            // Register global shortcut: Cmd+Shift+Space
-            let shortcut = Shortcut::new(Some(Modifiers::SUPER | Modifiers::SHIFT), Code::Space);
-            let app_handle = app.handle().clone();
-
-            app.global_shortcut().on_shortcut(shortcut, move |_app, _shortcut, event| {
-                // Only respond to key press, not release
-                if event.state != ShortcutState::Pressed {
-                    return;
-                }
-
-                if let Some(window) = app_handle.get_webview_window("launcher") {
-                    // Toggle window visibility
-                    if window.is_visible().unwrap_or(false) {
-                        let _ = window.hide();
-                    } else {
-                        // Capture previous app before showing (for paste-back feature)
-                        let _ = previous_app::capture_previous_app();
-
-                        // Position on the screen with the key window (uses fast native NSScreen API)
-                        let positioned = if let Some(bounds) = get_key_window_screen_bounds() {
-                            let x = bounds.x + (bounds.width - WINDOW_WIDTH) / 2.0;
-                            let y = bounds.y + bounds.height / 4.0;
-                            let _ = window.set_position(LogicalPosition::new(x, y));
-                            true
-                        } else {
-                            false
-                        };
-
-                        // Fallback: position on monitor with cursor
-                        if !positioned {
-                            if let Ok(cursor_pos) = window.cursor_position() {
-                                if let Ok(monitors) = window.available_monitors() {
-                                    for monitor in monitors {
-                                        let mon_pos = monitor.position();
-                                        let mon_size = monitor.size();
-                                        let scale = monitor.scale_factor();
-
-                                        let mon_x = mon_pos.x as f64;
-                                        let mon_y = mon_pos.y as f64;
-                                        let mon_w = mon_size.width as f64 / scale;
-                                        let mon_h = mon_size.height as f64 / scale;
-
-                                        if cursor_pos.x >= mon_x && cursor_pos.x < mon_x + mon_w &&
-                                           cursor_pos.y >= mon_y && cursor_pos.y < mon_y + mon_h {
-                                            let x = mon_x + (mon_w - WINDOW_WIDTH) / 2.0;
-                                            let y = mon_y + mon_h / 4.0;
-                                            let _ = window.set_position(LogicalPosition::new(x, y));
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                }
-            }).expect("Failed to register global shortcut");
+            // Register global shortcut from settings (defaults to Cmd+Shift+Space)
+            let app_handle = app.handle();
+            if let Err(e) = init_hotkey_from_settings(app_handle) {
+                eprintln!("Failed to register global hotkey from settings: {}", e);
+            }
 
             Ok(())
         })
@@ -178,6 +124,11 @@ pub fn run() {
             os::paste::copy_to_clipboard,
             os::paste::paste_from_editor,
             os::window::open_editor_window,
+            // Hotkey commands
+            os::hotkey::get_current_hotkey,
+            os::hotkey::set_hotkey,
+            os::hotkey::pause_hotkey,
+            os::hotkey::resume_hotkey,
             // Auth commands
             auth::sign_in_with_google,
             auth::get_current_auth,
