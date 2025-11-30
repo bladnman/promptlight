@@ -6,11 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 # Development
-npm run tauri:dev          # Start dev server with hot reload (reads VITE_PORT from .env.local)
+npm run dev                # Start dev server with hot reload (full Tauri app)
+npm run dev:vite           # Start Vite only (frontend, no Tauri)
 
-# Build
+# Build & Install
 npm run build              # TypeScript check + Vite build (frontend only)
-npm run tauri build        # Full release build (creates .app bundle)
+npm run install:local      # Build release and install to /Applications (macOS)
 
 # Testing
 npm run test               # Run all tests once
@@ -96,7 +97,7 @@ types/                 # TypeScript interfaces for Prompt, Folder, etc.
 ### Port Configuration
 - Each branch can have its own `.env.local` file (gitignored) to set a unique dev port
 - Set `VITE_PORT=<port>` in `.env.local` (suggested: 1420, 1430, 1440, 1450)
-- Run `npm run tauri:dev` to start - it reads from `.env.local` automatically
+- Run `npm run dev` to start - it reads from `.env.local` automatically
 
 ### Presenting Work to User
 When you complete your work and want the user to review it, run the `/dev` slash command.
