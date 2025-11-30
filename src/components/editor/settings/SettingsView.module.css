@@ -18,7 +18,6 @@
   width: 200px;
   min-width: 200px;
   background: var(--bg-secondary);
-  border-right: 1px solid var(--border-default);
   padding: var(--space-md);
   display: flex;
   flex-direction: column;

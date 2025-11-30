@@ -1,75 +1,24 @@
+/* Clean form layout - no labels, inline editing */
 .form {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-lg) var(--space-lg) var(--space-lg);
   gap: var(--space-md);
   overflow: hidden;
 }
 
-.row {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--space-md);
-}
-
-.row .field {
-  flex: 1;
-}
-
-.iconField {
-  display: flex;
-  align-items: flex-end;
-  padding-bottom: 2px;
-}
-
-.newFolderInput {
-  display: flex;
-}
-
-.field {
+/* Header section with title and description */
+.header {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
 }
 
+/* Content area takes remaining space */
 .contentField {
   flex: 1;
   min-height: 0;
-}
-
-.label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-}
-
-.required {
-  color: var(--status-error);
-}
-
-.input,
-.select {
-  padding: var(--space-sm) var(--space-md);
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-md);
-  color: var(--text-primary);
-  font-family: var(--font-family-base);
-  transition: border-color var(--transition-fast);
-}
-
-.input:focus,
-.select:focus {
-  outline: none;
-  border-color: var(--border-focus);
-}
-
-.input::placeholder {
-  color: var(--text-muted);
-}
-
-.select {
-  cursor: pointer;
+  display: flex;
+  flex-direction: column;
 }

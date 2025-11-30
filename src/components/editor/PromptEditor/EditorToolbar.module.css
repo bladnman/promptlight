@@ -1,158 +1,83 @@
+/* Minimal toolbar - icon picker, folder selector, and action icons */
 .toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-md) var(--space-lg);
-  border-bottom: 1px solid var(--border-default);
-  background: var(--bg-secondary);
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
 }
 
 .left {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-}
-
-.title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  margin: 0;
-}
-
-.dirty {
-  color: var(--status-warning);
-  margin-left: var(--space-xs);
-}
-
-.status {
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
+  gap: var(--space-sm);
 }
 
 .right {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
-.confirmGroup {
+/* Folder selector - compact, minimal */
+.folderSelect {
+  padding: var(--space-1) var(--space-2);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast), background var(--transition-fast);
+}
+
+.folderSelect:hover {
+  color: var(--text-secondary);
+  background: var(--editable-hover-bg);
+}
+
+.folderSelect:focus {
+  outline: none;
+  color: var(--text-secondary);
+  background: var(--editable-focus-bg);
+}
+
+/* New folder input */
+.newFolderInput {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
 }
 
-.confirmText {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.saveButton {
-  background: var(--accent-primary);
-  color: white;
+.folderInput {
+  padding: var(--space-1) var(--space-2);
+  background: var(--editable-focus-bg);
   border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--text-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--border-focus);
 }
 
-.saveButton:hover:not(:disabled) {
-  opacity: 0.9;
+.folderInput::placeholder {
+  color: var(--text-muted);
 }
 
-.saveButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.deleteButton {
-  background: none;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.deleteButton:hover {
-  background: var(--status-error);
-  color: white;
-  border-color: var(--status-error);
-}
-
-.dangerButton {
-  background: var(--status-error);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-}
-
-.dangerButton:hover {
-  opacity: 0.9;
-}
-
-.cancelButton {
-  background: none;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.cancelButton:hover {
-  background: var(--selection-bg);
-}
-
+/* Action groups */
 .actionGroup {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  margin-right: var(--space-md);
-  padding-right: var(--space-md);
-  border-right: 1px solid var(--border-default);
 }
 
-.actionButton {
-  background: none;
+/* Delete confirmation */
+.confirmGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.confirmText {
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
-  border: 1px solid var(--border-default);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  min-width: 70px;
-}
-
-.actionButton:hover {
-  background: var(--selection-bg);
-  color: var(--text-primary);
-}
-
-.pasteButton {
-  background: var(--accent-secondary);
-  color: white;
-  border: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: opacity var(--transition-fast);
-}
-
-.pasteButton:hover {
-  opacity: 0.9;
+  margin-right: var(--space-xs);
 }

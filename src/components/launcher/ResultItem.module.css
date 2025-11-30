@@ -26,8 +26,9 @@
 
 .name {
   color: var(--text-primary);
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
