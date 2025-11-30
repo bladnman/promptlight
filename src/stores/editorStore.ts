@@ -10,7 +10,12 @@ function getTrailingWhitespace(str: string): string {
   return match ? match[1] : '';
 }
 
+/** View type for the editor window */
+export type EditorView = 'prompts' | 'settings';
+
 interface EditorState {
+  /** Current view in the editor window */
+  currentView: EditorView;
   /** All prompts for sidebar list */
   prompts: PromptMetadata[];
   /** Available folders */
@@ -92,11 +97,14 @@ interface EditorActions {
   renameFolder: (oldName: string, newName: string) => Promise<boolean>;
   /** Delete a folder */
   deleteFolder: (name: string) => Promise<boolean>;
+  /** Set the current view */
+  setView: (view: EditorView) => void;
 }
 
 type EditorStore = EditorState & EditorActions;
 
 const initialState: EditorState = {
+  currentView: 'prompts',
   prompts: [],
   folders: ['uncategorized'],
   folderMeta: {},
@@ -447,5 +455,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
       set({ error: String(error) });
       return false;
     }
+  },
+
+  setView: (view) => {
+    set({ currentView: view });
   },
 }));

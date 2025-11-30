@@ -20,8 +20,7 @@ const NEVER_USED_PENALTY: f64 = -1000.0;
 
 const MAX_RESULTS: usize = 15;
 
-/// Search prompts by query
-#[tauri::command]
+/// Search prompts by query (legacy - use commands::search_prompts)
 pub fn search_prompts(query: String) -> Result<Vec<SearchResult>, String> {
     let index = index::load_index()?;
     let query_lower = query.to_lowercase();
