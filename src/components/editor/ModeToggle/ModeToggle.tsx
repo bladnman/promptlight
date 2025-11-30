@@ -7,6 +7,7 @@ export function ModeToggle() {
 
   return (
     <div className={styles.container}>
+      <img src="/app-icon.png" alt="" className={styles.appIcon} />
       <button
         className={`${styles.tab} ${currentView === 'prompts' ? styles.active : ''}`}
         onClick={() => setView('prompts')}

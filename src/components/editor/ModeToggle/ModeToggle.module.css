@@ -1,10 +1,18 @@
 /* Mode toggle tabs - Editor / Settings */
 .container {
   display: flex;
+  align-items: center;
   gap: var(--space-1);
   padding: var(--space-sm) var(--space-md);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-subtle);
+}
+
+.appIcon {
+  width: 24px;
+  height: 24px;
+  margin-right: var(--space-2);
+  opacity: 0.9;
 }
 
 .tab {
