@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Promptlight",
+  "productName": "PromptLight",
   "version": "0.1.0",
   "identifier": "com.promptlight.app",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "launcher",
-        "title": "Promptlight",
+        "title": "PromptLight",
         "width": 650,
         "height": 400,
         "center": true,

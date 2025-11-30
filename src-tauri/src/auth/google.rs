@@ -122,7 +122,7 @@ fn wait_for_callback(listener: TcpListener) -> Result<String, String> {
         Connection: close\r\n\r\n\
         <html><body>\
         <h1>Sign-in successful!</h1>\
-        <p>You can close this window and return to Promptlight.</p>\
+        <p>You can close this window and return to PromptLight.</p>\
         <script>window.close();</script>\
         </body></html>";
 

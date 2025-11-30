@@ -56,7 +56,7 @@ pub async fn open_editor_window(
 
     // Create new editor window
     let mut builder = WebviewWindowBuilder::new(&app, label, WebviewUrl::App(url.into()))
-        .title("Promptlight Editor")
+        .title("PromptLight Editor")
         .inner_size(window_width, window_height)
         .min_inner_size(800.0, 600.0);
 
