@@ -4,6 +4,8 @@ import { invoke } from '@tauri-apps/api/core';
 /** General application settings */
 export interface GeneralSettings {
   autoLaunch: boolean;
+  /** Global hotkey to summon the launcher (e.g., "CommandOrControl+Shift+Space") */
+  hotkey: string | null;
 }
 
 /** Cloud sync settings */
@@ -40,6 +42,8 @@ interface SettingsActions {
   updateSyncSettings: (updates: Partial<SyncSettings>) => Promise<void>;
   /** Set auto-launch enabled/disabled */
   setAutoLaunch: (enabled: boolean) => Promise<void>;
+  /** Set global hotkey (null to disable) */
+  setHotkey: (hotkey: string | null) => Promise<void>;
   /** Clear error */
   clearError: () => void;
 }
@@ -49,6 +53,7 @@ type SettingsStore = SettingsState & SettingsActions;
 const defaultSettings: AppSettings = {
   general: {
     autoLaunch: false,
+    hotkey: 'CommandOrControl+Shift+Space',
   },
   sync: {
     enabled: false,
@@ -136,6 +141,24 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       set({ systemAutoLaunch: enabled, isSaving: false });
     } catch (error) {
       console.error('Failed to set auto-launch:', error);
+      set({ error: String(error), isSaving: false });
+    }
+  },
+
+  setHotkey: async (hotkey) => {
+    const { settings } = get();
+    set({ isSaving: true, error: null });
+    try {
+      // Call the backend to register/unregister the hotkey
+      await invoke('set_hotkey', { hotkey });
+      // Update local state
+      const newSettings: AppSettings = {
+        ...settings,
+        general: { ...settings.general, hotkey },
+      };
+      set({ settings: newSettings, isSaving: false });
+    } catch (error) {
+      console.error('Failed to set hotkey:', error);
       set({ error: String(error), isSaving: false });
     }
   },

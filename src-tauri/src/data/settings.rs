@@ -8,6 +8,15 @@ use super::get_base_data_dir;
 #[serde(rename_all = "camelCase")]
 pub struct GeneralSettings {
     pub auto_launch: bool,
+    /// Global hotkey to summon the launcher (e.g., "CommandOrControl+Shift+Space")
+    /// None means no hotkey is registered
+    #[serde(default = "default_hotkey")]
+    pub hotkey: Option<String>,
+}
+
+/// Default hotkey: Cmd/Ctrl+Shift+Space
+fn default_hotkey() -> Option<String> {
+    Some("CommandOrControl+Shift+Space".to_string())
 }
 
 /// Cloud sync settings

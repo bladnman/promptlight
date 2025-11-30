@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Settings, Cloud, CloudOff, Power, LogOut, User } from 'lucide-react';
+import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard } from 'lucide-react';
 import { useSettingsStore } from '../../../stores/settingsStore';
 import { useAuthStore } from '../../../stores/authStore';
+import { HotkeyInput } from './HotkeyInput';
 import styles from './SettingsView.module.css';
 
 type SettingsSection = 'general' | 'sync';
@@ -17,6 +18,7 @@ export function SettingsView() {
     loadSettings,
     updateSyncSettings,
     setAutoLaunch,
+    setHotkey,
   } = useSettingsStore();
 
   const {
@@ -67,6 +69,9 @@ export function SettingsView() {
           <GeneralSection
             autoLaunch={systemAutoLaunch}
             onAutoLaunchChange={setAutoLaunch}
+            hotkey={settings.general.hotkey}
+            onHotkeyChange={setHotkey}
+            isSaving={isSaving}
           />
         )}
         {activeSection === 'sync' && (
@@ -92,15 +97,38 @@ export function SettingsView() {
 interface GeneralSectionProps {
   autoLaunch: boolean;
   onAutoLaunchChange: (value: boolean) => void;
+  hotkey: string | null;
+  onHotkeyChange: (value: string | null) => void;
+  isSaving: boolean;
 }
 
-function GeneralSection({ autoLaunch, onAutoLaunchChange }: GeneralSectionProps) {
+function GeneralSection({
+  autoLaunch,
+  onAutoLaunchChange,
+  hotkey,
+  onHotkeyChange,
+  isSaving,
+}: GeneralSectionProps) {
   return (
     <section className={styles.section}>
       <h3 className={styles.sectionTitle}>General</h3>
       <p className={styles.sectionDescription}>
         Configure general application behavior.
       </p>
+
+      <div className={styles.settingRow}>
+        <div className={styles.settingInfo}>
+          <div className={styles.settingLabel}>
+            <Keyboard size={16} />
+            Global hotkey
+            {isSaving && <span className={styles.savingIndicator}>Saving...</span>}
+          </div>
+          <div className={styles.settingHint}>
+            Press to summon the launcher from anywhere.
+          </div>
+        </div>
+        <HotkeyInput value={hotkey} onChange={onHotkeyChange} disabled={isSaving} />
+      </div>
 
       <div className={styles.settingRow}>
         <div className={styles.settingInfo}>
