@@ -280,3 +280,16 @@ pub fn init_hotkey_from_settings(app: &AppHandle) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Temporarily pause the global hotkey (for recording a new one)
+/// This unregisters the shortcut but doesn't change settings
+#[tauri::command]
+pub fn pause_hotkey(app: AppHandle) -> Result<(), String> {
+    unregister_current_hotkey(&app)
+}
+
+/// Resume the global hotkey from settings (after recording)
+#[tauri::command]
+pub fn resume_hotkey(app: AppHandle) -> Result<(), String> {
+    init_hotkey_from_settings(&app)
+}

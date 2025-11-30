@@ -127,6 +127,8 @@ pub fn run() {
             // Hotkey commands
             os::hotkey::get_current_hotkey,
             os::hotkey::set_hotkey,
+            os::hotkey::pause_hotkey,
+            os::hotkey::resume_hotkey,
             // Auth commands
             auth::sign_in_with_google,
             auth::get_current_auth,

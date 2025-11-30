@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { Keyboard, X } from 'lucide-react';
 import styles from './HotkeyInput.module.css';
 
@@ -90,10 +91,73 @@ function parseHotkeyToTokens(hotkey: string): string[] {
   return tokens;
 }
 
+/** Debounce delay before committing the hotkey (ms) */
+const COMMIT_DELAY = 300;
+
 export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [pendingHotkey, setPendingHotkey] = useState<string | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  // Track what we've committed so we can show it until value updates
+  const [committedHotkey, setCommittedHotkey] = useState<string | null>(null);
+
   const inputRef = useRef<HTMLDivElement>(null);
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear commit timer on unmount
+  useEffect(() => {
+    return () => {
+      if (commitTimerRef.current) {
+        clearTimeout(commitTimerRef.current);
+      }
+    };
+  }, []);
+
+  // When value updates to match what we committed, clear the committed state
+  useEffect(() => {
+    if (committedHotkey && value === committedHotkey) {
+      setCommittedHotkey(null);
+    }
+  }, [value, committedHotkey]);
+
+  const cancelRecording = useCallback(async () => {
+    // Clear any pending commit
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+
+    setIsRecording(false);
+    setPendingHotkey(null);
+
+    // Resume the global hotkey
+    if (isPaused) {
+      try {
+        await invoke('resume_hotkey');
+      } catch (e) {
+        console.error('Failed to resume hotkey:', e);
+      }
+      setIsPaused(false);
+    }
+  }, [isPaused]);
+
+  const commitHotkey = useCallback(async (hotkey: string) => {
+    // Clear timer
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+
+    // Store what we're committing so we can display it until value updates
+    setCommittedHotkey(hotkey);
+    setIsRecording(false);
+    setPendingHotkey(null);
+    setIsPaused(false);
+
+    // Call onChange - this will trigger setHotkey in the store,
+    // which handles re-registering the new hotkey
+    onChange(hotkey);
+  }, [onChange]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -104,9 +168,14 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
 
       // Escape cancels recording
       if (e.key === 'Escape') {
-        setIsRecording(false);
-        setPendingHotkey(null);
+        cancelRecording();
         return;
+      }
+
+      // Cancel any pending commit since user is still pressing keys
+      if (commitTimerRef.current) {
+        clearTimeout(commitTimerRef.current);
+        commitTimerRef.current = null;
       }
 
       const hotkey = keyboardEventToHotkey(e);
@@ -114,18 +183,36 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
         setPendingHotkey(hotkey);
       }
     },
-    [isRecording]
+    [isRecording, cancelRecording]
   );
 
-  const handleKeyUp = useCallback(() => {
-    if (!isRecording || !pendingHotkey) return;
+  const handleKeyUp = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isRecording || !pendingHotkey) return;
 
-    // Commit the hotkey on key release
-    onChange(pendingHotkey);
-    setIsRecording(false);
-    setPendingHotkey(null);
-  }, [isRecording, pendingHotkey, onChange]);
+      e.preventDefault();
+      e.stopPropagation();
 
+      // Clear any existing timer
+      if (commitTimerRef.current) {
+        clearTimeout(commitTimerRef.current);
+      }
+
+      // Check if all modifier keys are released
+      const allModifiersReleased = !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey;
+
+      if (allModifiersReleased) {
+        // All keys released - commit after a short delay
+        // This gives time for any rapid key adjustments
+        commitTimerRef.current = setTimeout(() => {
+          commitHotkey(pendingHotkey);
+        }, COMMIT_DELAY);
+      }
+    },
+    [isRecording, pendingHotkey, commitHotkey]
+  );
+
+  // Attach/detach keyboard listeners
   useEffect(() => {
     if (isRecording) {
       window.addEventListener('keydown', handleKeyDown, true);
@@ -143,28 +230,41 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
 
     const handleClickOutside = (e: MouseEvent) => {
       if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
-        setIsRecording(false);
-        setPendingHotkey(null);
+        cancelRecording();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isRecording]);
+  }, [isRecording, cancelRecording]);
 
-  const startRecording = () => {
+  const startRecording = async () => {
     if (disabled) return;
+
+    // Pause the global hotkey FIRST, then wait for it to complete
+    try {
+      await invoke('pause_hotkey');
+      setIsPaused(true);
+    } catch (e) {
+      console.error('Failed to pause hotkey:', e);
+      // Continue anyway - the global shortcut might interfere but we'll try
+    }
+
+    // Now safe to start recording
     setIsRecording(true);
     setPendingHotkey(null);
+    setCommittedHotkey(null);
   };
 
-  const clearHotkey = (e: React.MouseEvent) => {
+  const clearHotkey = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (disabled) return;
+    setCommittedHotkey(null);
     onChange(null);
   };
 
-  const displayHotkey = pendingHotkey || value;
+  // Show pending hotkey while recording, committed hotkey while saving, or current value
+  const displayHotkey = pendingHotkey || committedHotkey || value;
   const tokens = displayHotkey ? parseHotkeyToTokens(displayHotkey) : [];
 
   return (
