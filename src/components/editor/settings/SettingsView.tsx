@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard } from 'lucide-react';
-import { useSettingsStore } from '../../../stores/settingsStore';
+import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard, Palette, Sun, Moon, Monitor } from 'lucide-react';
+import { useSettingsStore, type AppearanceSettings } from '../../../stores/settingsStore';
 import { useAuthStore } from '../../../stores/authStore';
 import { HotkeyInput } from './HotkeyInput';
+import { ACCENT_COLORS, THEME_OPTIONS, type AccentColorName, type ThemeOption } from '../../../config/constants';
 import styles from './SettingsView.module.css';
 
-type SettingsSection = 'general' | 'sync';
+type SettingsSection = 'general' | 'appearance' | 'sync';
 
 export function SettingsView() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
@@ -19,6 +20,8 @@ export function SettingsView() {
     updateSyncSettings,
     setAutoLaunch,
     setHotkey,
+    setTheme,
+    setAccentColor,
   } = useSettingsStore();
 
   const {
@@ -56,6 +59,13 @@ export function SettingsView() {
           General
         </button>
         <button
+          className={`${styles.navItem} ${activeSection === 'appearance' ? styles.active : ''}`}
+          onClick={() => setActiveSection('appearance')}
+        >
+          <Palette size={16} />
+          Appearance
+        </button>
+        <button
           className={`${styles.navItem} ${activeSection === 'sync' ? styles.active : ''}`}
           onClick={() => setActiveSection('sync')}
         >
@@ -71,6 +81,14 @@ export function SettingsView() {
             onAutoLaunchChange={setAutoLaunch}
             hotkey={settings.general.hotkey}
             onHotkeyChange={setHotkey}
+            isSaving={isSaving}
+          />
+        )}
+        {activeSection === 'appearance' && (
+          <AppearanceSection
+            appearance={settings.appearance}
+            onThemeChange={setTheme}
+            onAccentColorChange={setAccentColor}
             isSaving={isSaving}
           />
         )}
@@ -148,6 +166,99 @@ function GeneralSection({
           />
           <span className={styles.toggleSlider} />
         </label>
+      </div>
+    </section>
+  );
+}
+
+interface AppearanceSectionProps {
+  appearance: AppearanceSettings;
+  onThemeChange: (theme: ThemeOption) => void;
+  onAccentColorChange: (color: AccentColorName) => void;
+  isSaving: boolean;
+}
+
+function AppearanceSection({
+  appearance,
+  onThemeChange,
+  onAccentColorChange,
+  isSaving,
+}: AppearanceSectionProps) {
+  const themeIcons: Record<ThemeOption, React.ReactNode> = {
+    dark: <Moon size={16} />,
+    light: <Sun size={16} />,
+    auto: <Monitor size={16} />,
+  };
+
+  const themeLabels: Record<ThemeOption, string> = {
+    dark: 'Dark',
+    light: 'Light',
+    auto: 'System',
+  };
+
+  return (
+    <section className={styles.section}>
+      <h3 className={styles.sectionTitle}>Appearance</h3>
+      <p className={styles.sectionDescription}>
+        Customize how PromptLight looks.
+      </p>
+
+      {/* Theme Selection */}
+      <div className={styles.settingRow}>
+        <div className={styles.settingInfo}>
+          <div className={styles.settingLabel}>
+            {themeIcons[appearance.theme]}
+            Theme
+            {isSaving && <span className={styles.savingIndicator}>Saving...</span>}
+          </div>
+          <div className={styles.settingHint}>
+            Choose your preferred color scheme.
+          </div>
+        </div>
+        <div className={styles.themeSelector}>
+          {THEME_OPTIONS.map((theme) => (
+            <button
+              key={theme}
+              className={`${styles.themeOption} ${appearance.theme === theme ? styles.active : ''}`}
+              onClick={() => onThemeChange(theme)}
+              disabled={isSaving}
+              title={themeLabels[theme]}
+            >
+              {themeIcons[theme]}
+              <span>{themeLabels[theme]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Accent Color Selection */}
+      <div className={styles.settingRow}>
+        <div className={styles.settingInfo}>
+          <div className={styles.settingLabel}>
+            <Palette size={16} />
+            Accent color
+          </div>
+          <div className={styles.settingHint}>
+            Choose a color that complements your style.
+          </div>
+        </div>
+        <div className={styles.accentSelector}>
+          {(Object.entries(ACCENT_COLORS) as [AccentColorName, typeof ACCENT_COLORS[AccentColorName]][]).map(
+            ([key, color]) => (
+              <button
+                key={key}
+                className={`${styles.accentOption} ${appearance.accentColor === key ? styles.active : ''}`}
+                onClick={() => onAccentColorChange(key)}
+                disabled={isSaving}
+                title={color.name}
+                style={{ '--accent-swatch': color.primary } as React.CSSProperties}
+              >
+                <span className={styles.accentSwatch} />
+                <span className={styles.accentLabel}>{color.name}</span>
+              </button>
+            )
+          )}
+        </div>
       </div>
     </section>
   );

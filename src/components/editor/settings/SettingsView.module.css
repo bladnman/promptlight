@@ -310,3 +310,90 @@
   margin-left: var(--space-sm);
   font-weight: var(--font-weight-normal);
 }
+
+/* Theme Selector */
+.themeSelector {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.themeOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.themeOption:hover:not(:disabled) {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.themeOption.active {
+  background: var(--accent-primary);
+  color: white;
+  border-color: var(--accent-primary);
+}
+
+.themeOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Accent Color Selector */
+.accentSelector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.accentOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.accentOption:hover:not(:disabled) {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.accentOption.active {
+  border-color: var(--accent-swatch, var(--accent-primary));
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.accentOption:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.accentSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  background: var(--accent-swatch);
+  flex-shrink: 0;
+}
+
+.accentLabel {
+  white-space: nowrap;
+}
