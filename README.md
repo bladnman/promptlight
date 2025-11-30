@@ -2,6 +2,8 @@
 
 A Spotlight-style desktop app for instantly searching, selecting, and pasting prompts into any application.
 
+> **Want to try it out?** Download pre-built installers from the [Releases](https://github.com/bladnman/promptlight/releases) page.
+
 ## The Problem
 
 Power users accumulate dozens or hundreds of prompts for coding, writing, and analysis. These live scattered across notes apps, text files, and bookmarks. When you need a prompt, you leave your current context, hunt through files, copy, return, and paste. This friction kills flow.
