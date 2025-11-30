@@ -17,7 +17,13 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "check": "npm run lint && npm run build && npm run test"
+    "check": "npm run lint && npm run build && npm run test",
+    "release": "./scripts/release.sh",
+    "release:patch": "./scripts/release.sh patch",
+    "release:minor": "./scripts/release.sh minor",
+    "release:major": "./scripts/release.sh major",
+    "version:sync": "./scripts/sync-version.sh",
+    "version:check": "./scripts/sync-version.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

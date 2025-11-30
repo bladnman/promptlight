@@ -3,6 +3,15 @@
  * Per CLAUDE.md: All literal values must be extracted to configuration
  */
 
+/** App version - synced from package.json at build time via Vite */
+export const APP_VERSION = __APP_VERSION__;
+
+/** GitHub repository for update checks */
+export const GITHUB_REPO = {
+  owner: 'bladnman',
+  repo: 'promptlight',
+} as const;
+
 /** Keyboard shortcuts */
 export const HOTKEYS = {
   /** Global hotkey to summon the launcher */
