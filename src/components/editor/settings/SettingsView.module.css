@@ -311,6 +311,17 @@
   font-weight: var(--font-weight-normal);
 }
 
+/* Appearance Setting Row - vertical layout */
+.appearanceRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+}
+
 /* Theme Selector */
 .themeSelector {
   display: flex;
@@ -350,35 +361,34 @@
 
 /* Accent Color Selector */
 .accentSelector {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
+  display: grid;
+  grid-template-columns: repeat(6, auto);
+  gap: var(--space-xs);
+  justify-content: start;
 }
 
 .accentOption {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-xs) var(--space-sm);
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--transition-fast);
+  position: relative;
 }
 
 .accentOption:hover:not(:disabled) {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  border-color: var(--border-default);
+  transform: scale(1.1);
 }
 
 .accentOption.active {
-  border-color: var(--accent-swatch, var(--accent-primary));
-  color: var(--text-primary);
-  background: var(--bg-secondary);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-primary);
 }
 
 .accentOption:disabled {
@@ -387,13 +397,21 @@
 }
 
 .accentSwatch {
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-full);
   background: var(--accent-swatch);
   flex-shrink: 0;
 }
 
 .accentLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
   white-space: nowrap;
+  border: 0;
 }

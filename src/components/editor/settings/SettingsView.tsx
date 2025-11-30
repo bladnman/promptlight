@@ -204,7 +204,7 @@ function AppearanceSection({
       </p>
 
       {/* Theme Selection */}
-      <div className={styles.settingRow}>
+      <div className={styles.appearanceRow}>
         <div className={styles.settingInfo}>
           <div className={styles.settingLabel}>
             {themeIcons[appearance.theme]}
@@ -232,14 +232,14 @@ function AppearanceSection({
       </div>
 
       {/* Accent Color Selection */}
-      <div className={styles.settingRow}>
+      <div className={styles.appearanceRow}>
         <div className={styles.settingInfo}>
           <div className={styles.settingLabel}>
             <Palette size={16} />
             Accent color
           </div>
           <div className={styles.settingHint}>
-            Choose a color that complements your style.
+            Pick a color.
           </div>
         </div>
         <div className={styles.accentSelector}>
