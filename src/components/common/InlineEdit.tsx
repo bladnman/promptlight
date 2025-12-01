@@ -8,6 +8,8 @@ interface InlineEditProps {
   variant?: 'title' | 'body';
   onBlur?: () => void;
   className?: string;
+  /** Start in editing mode with focus */
+  autoFocus?: boolean;
 }
 
 export function InlineEdit({
@@ -17,8 +19,9 @@ export function InlineEdit({
   variant = 'body',
   onBlur,
   className,
+  autoFocus = false,
 }: InlineEditProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(autoFocus);
   const [editValue, setEditValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
 
