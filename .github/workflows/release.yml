@@ -93,6 +93,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Update version from tag
+        run: |
+          VERSION=${{ needs.create-release.outputs.version }}
+          echo "Setting version to $VERSION"
+          # Update package.json
+          sed -i.bak 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' package.json
+          # Update Cargo.toml
+          sed -i.bak 's/^version = "[^"]*"/version = "'"$VERSION"'"/' src-tauri/Cargo.toml
+          # Update tauri.conf.json
+          sed -i.bak 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
+          rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
+
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
         env:
@@ -122,6 +134,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Update version from tag
+        run: |
+          VERSION=${{ needs.create-release.outputs.version }}
+          echo "Setting version to $VERSION"
+          sed -i.bak 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' package.json
+          sed -i.bak 's/^version = "[^"]*"/version = "'"$VERSION"'"/' src-tauri/Cargo.toml
+          sed -i.bak 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
+          rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
 
       - name: Build Tauri app (Universal)
         uses: tauri-apps/tauri-action@v0
@@ -155,6 +176,14 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Update version from tag
+        run: |
+          VERSION=${{ needs.create-release.outputs.version }}
+          echo "Setting version to $VERSION"
+          sed -i 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' package.json
+          sed -i 's/^version = "[^"]*"/version = "'"$VERSION"'"/' src-tauri/Cargo.toml
+          sed -i 's/"version": "[^"]*"/"version": "'"$VERSION"'"/' src-tauri/tauri.conf.json
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
