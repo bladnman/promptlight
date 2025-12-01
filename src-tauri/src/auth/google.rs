@@ -10,21 +10,33 @@ use url::Url;
 const GOOGLE_AUTH_URL: &str = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 
-/// Get the Google OAuth client ID from environment
+/// Get the Google OAuth client ID
+/// Uses compile-time env for release builds, falls back to runtime for dev
 fn get_google_client_id() -> &'static str {
     static CLIENT_ID: OnceLock<String> = OnceLock::new();
     CLIENT_ID.get_or_init(|| {
+        // First try compile-time (for release builds)
+        if let Some(id) = option_env!("GOOGLE_CLIENT_ID") {
+            return id.to_string();
+        }
+        // Fall back to runtime (for dev builds with .env.local)
         std::env::var("GOOGLE_CLIENT_ID")
-            .expect("GOOGLE_CLIENT_ID must be set in .env.local")
+            .expect("GOOGLE_CLIENT_ID must be set (compile-time or in .env.local)")
     })
 }
 
-/// Get the Google OAuth client secret from environment
+/// Get the Google OAuth client secret
+/// Uses compile-time env for release builds, falls back to runtime for dev
 fn get_google_client_secret() -> &'static str {
     static CLIENT_SECRET: OnceLock<String> = OnceLock::new();
     CLIENT_SECRET.get_or_init(|| {
+        // First try compile-time (for release builds)
+        if let Some(secret) = option_env!("GOOGLE_CLIENT_SECRET") {
+            return secret.to_string();
+        }
+        // Fall back to runtime (for dev builds with .env.local)
         std::env::var("GOOGLE_CLIENT_SECRET")
-            .expect("GOOGLE_CLIENT_SECRET must be set in .env.local")
+            .expect("GOOGLE_CLIENT_SECRET must be set (compile-time or in .env.local)")
     })
 }
 
