@@ -20,146 +20,147 @@
   background: var(--editable-focus-bg);
 }
 
-/* Plain textarea editor - preserves exact text formatting */
-.textarea {
+/* ink-mde editor container - MUST have min-height: 0 to allow flex shrinking */
+.editor {
   flex: 1;
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ink-mde core styling overrides */
+.editor :global(.ink-mde) {
+  --ink-font-family: var(--font-family-mono);
+  --ink-color: var(--text-primary);
+  --ink-background-color: transparent;
+  --ink-block-background-color: transparent;
+  --ink-block-padding: 0;
+  --ink-code-background-color: var(--bg-elevated);
+  --ink-code-color: var(--accent-secondary);
+  --ink-line-height: var(--line-height-loose);
+  flex: 1;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Editor content area - must constrain height */
+.editor :global(.ink-mde-editor) {
+  flex: 1;
+  min-height: 0 !important;
   padding: var(--space-4);
   font-size: var(--font-size-md);
-  font-family: var(--font-family-mono);
-  color: var(--text-primary);
-  line-height: var(--line-height-loose);
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
-  min-height: 200px;
-  overflow-y: auto;
+  overflow: hidden !important;
 }
 
-.textarea::placeholder {
-  color: var(--text-muted);
-}
-
-/* Main editor area - targets ProseMirror container (kept for reference) */
-.wrapper :global(.ProseMirror) {
+/* CodeMirror container - must constrain height */
+.editor :global(.cm-editor) {
   flex: 1;
-  padding: var(--space-md);
+  min-height: 0 !important;
+  max-height: 100% !important;
+  font-family: var(--font-family-mono);
+  overflow: hidden !important;
+}
+
+/* CodeMirror scroller - this is where scrolling happens */
+.editor :global(.cm-scroller) {
+  flex: 1;
+  min-height: 0 !important;
+  overflow: auto !important;
+}
+
+/* Content styling */
+.editor :global(.cm-content) {
+  font-family: var(--font-family-mono);
   font-size: var(--font-size-md);
-  font-family: var(--font-family-base);
-  color: var(--text-primary);
-  line-height: var(--line-height-relaxed);
-  outline: none;
-  overflow-y: auto;
-  min-height: 200px;
+  line-height: var(--line-height-loose);
+  caret-color: var(--text-primary);
+  padding: 0 !important;
+}
+
+/* Line styling - remove any backgrounds */
+.editor :global(.cm-line) {
+  padding-left: 0;
+}
+
+/* Override ink-mde active line styling */
+.editor :global(.cm-activeLine) {
+  background: transparent !important;
+}
+
+.editor :global(.cm-activeLineGutter) {
+  background: transparent !important;
 }
 
 /* Placeholder styling */
-.isEmpty::before {
-  content: attr(data-placeholder);
+.editor :global(.cm-placeholder) {
   color: var(--text-muted);
-  pointer-events: none;
-  float: left;
-  height: 0;
+  font-style: normal;
 }
 
-/* Typography - Headers */
-.wrapper :global(.ProseMirror) h1 {
+/* Selection highlight */
+.editor :global(.cm-selectionBackground) {
+  background: var(--selection-bg) !important;
+}
+
+.editor :global(.cm-focused .cm-selectionBackground) {
+  background: var(--selection-bg) !important;
+}
+
+/* Cursor styling */
+.editor :global(.cm-cursor) {
+  border-left-color: var(--text-primary);
+}
+
+/* Markdown syntax highlighting */
+.editor :global(.ink-mde-heading) {
+  font-weight: var(--font-weight-semibold);
+}
+
+.editor :global(.ink-mde-heading-1) {
   font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-lg) 0 var(--space-md);
-  line-height: var(--line-height-tight);
 }
 
-.wrapper :global(.ProseMirror) h1:first-child {
-  margin-top: 0;
-}
-
-.wrapper :global(.ProseMirror) h2 {
+.editor :global(.ink-mde-heading-2) {
   font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-md) 0 var(--space-sm);
-  line-height: var(--line-height-tight);
 }
 
-.wrapper :global(.ProseMirror) h3 {
+.editor :global(.ink-mde-heading-3) {
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--space-md) 0 var(--space-sm);
-  line-height: var(--line-height-tight);
 }
 
-/* Paragraphs */
-.wrapper :global(.ProseMirror) p {
-  margin: 0 0 var(--space-sm);
-}
-
-/* Bold and Italic */
-.wrapper :global(.ProseMirror) strong {
+.editor :global(.ink-mde-bold) {
   font-weight: var(--font-weight-semibold);
 }
 
-.wrapper :global(.ProseMirror) em {
+.editor :global(.ink-mde-italic) {
   font-style: italic;
 }
 
-/* Links */
-.link {
-  color: var(--text-accent);
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-/* Inline code */
-.inlineCode {
+.editor :global(.ink-mde-code) {
   font-family: var(--font-family-mono);
-  font-size: 0.9em;
   background: var(--bg-elevated);
   padding: 2px 6px;
   border-radius: var(--radius-sm);
   color: var(--accent-secondary);
 }
 
-/* Code blocks */
-.codeBlock {
+.editor :global(.ink-mde-code-block) {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   background: var(--bg-elevated);
   padding: var(--space-md);
   border-radius: var(--radius-md);
   margin: var(--space-md) 0;
-  overflow-x: auto;
-  line-height: var(--line-height-normal);
 }
 
-/* Lists */
-.wrapper :global(.ProseMirror) ul,
-.wrapper :global(.ProseMirror) ol {
-  padding-left: var(--space-lg);
-  margin: var(--space-sm) 0;
+.editor :global(.ink-mde-link) {
+  color: var(--text-accent);
+  text-decoration: underline;
 }
 
-.wrapper :global(.ProseMirror) li {
-  margin: var(--space-xs) 0;
-}
-
-/* Blockquote */
-.wrapper :global(.ProseMirror) blockquote {
+.editor :global(.ink-mde-blockquote) {
   border-left: 3px solid var(--accent-primary);
   padding-left: var(--space-md);
-  margin: var(--space-md) 0;
   color: var(--text-secondary);
-  font-style: italic;
-}
-
-/* Horizontal rule */
-.wrapper :global(.ProseMirror) hr {
-  border: none;
-  border-top: 1px solid var(--border-default);
-  margin: var(--space-lg) 0;
-}
-
-/* Selection highlight */
-.wrapper :global(.ProseMirror) ::selection {
-  background: var(--selection-bg);
 }
