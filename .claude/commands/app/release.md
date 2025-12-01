@@ -2,6 +2,8 @@
 
 Create a new release by tagging and pushing to GitHub.
 
+IMPORTANT: IF THERE ARE UNCOMMITTED CHANGES, YOU MUST STOP AND ASK THE USER IF THEY WANT TO COMMIT THEM.
+
 Run the release script:
 ```bash
 ./scripts/release.sh
