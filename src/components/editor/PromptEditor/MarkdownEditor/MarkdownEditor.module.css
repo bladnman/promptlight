@@ -75,7 +75,7 @@
   font-size: var(--font-size-md);
   line-height: var(--line-height-loose);
   caret-color: var(--text-primary);
-  padding: 0 !important;
+  padding: 0 var(--space-sm) !important;
 }
 
 /* Line styling - remove any backgrounds */
@@ -159,8 +159,11 @@
   text-decoration: underline;
 }
 
-.editor :global(.ink-mde-blockquote) {
+/* Blockquote lines - ink-mde applies cm-blockquote to .cm-line */
+.editor :global(.cm-line.cm-blockquote) {
   border-left: 3px solid var(--accent-primary);
-  padding-left: var(--space-md);
+  padding-left: var(--space-md) !important;
+  margin-left: var(--space-xs);
   color: var(--text-secondary);
+  background: transparent !important;
 }

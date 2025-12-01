@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { Copy, ClipboardPaste, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore } from '../../../stores/editorStore';
+import { useDerivedFolders } from '../../../hooks/useDerivedFolders';
 import { IconColorPicker } from '../../common/IconColorPicker';
 import { IconButton } from '../../common/IconButton';
 import {
@@ -17,11 +18,33 @@ const NEW_FOLDER_VALUE = '__new_folder__';
 export function EditorToolbar() {
   const {
     editedPrompt,
-    folders,
+    prompts,
     updateField,
     createFolderAndSelect,
     deletePrompt,
   } = useEditorStore();
+
+  // Get folders that have prompts
+  const existingFolders = useDerivedFolders(prompts);
+
+  // Build dropdown options: existing folders + current prompt's folder + 'uncategorized' fallback
+  const dropdownFolders = useMemo(() => {
+    const folderSet = new Set(existingFolders);
+
+    // Include current prompt's folder even if it's the only prompt there
+    if (editedPrompt?.folder) {
+      folderSet.add(editedPrompt.folder);
+    }
+
+    // Always include 'uncategorized' as a fallback option for new prompts
+    folderSet.add('uncategorized');
+
+    return Array.from(folderSet).sort((a, b) => {
+      if (a === 'uncategorized') return 1;
+      if (b === 'uncategorized') return -1;
+      return a.localeCompare(b);
+    });
+  }, [existingFolders, editedPrompt?.folder]);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
@@ -135,7 +158,7 @@ export function EditorToolbar() {
             onChange={handleFolderChange}
             className={styles.folderSelect}
           >
-            {folders.map((folder) => (
+            {dropdownFolders.map((folder) => (
               <option key={folder} value={folder}>
                 {folder}
               </option>

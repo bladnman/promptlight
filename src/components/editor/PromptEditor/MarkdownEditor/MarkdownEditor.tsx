@@ -80,9 +80,17 @@ export function MarkdownEditor({
       placeholder,
     });
 
-    // Focus editor if autoFocus was requested
+    // Handle focus behavior
     if (autoFocusRef.current) {
       editorRef.current.focus();
+    } else {
+      // Prevent ink-mde from stealing focus when autoFocus is false
+      // This fixes the issue where the body gets focus instead of title on new prompts
+      setTimeout(() => {
+        if (editorRef.current && document.activeElement?.closest('.ink-mde')) {
+          (document.activeElement as HTMLElement)?.blur();
+        }
+      }, 0);
     }
 
     return () => {

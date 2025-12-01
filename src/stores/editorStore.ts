@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
+import { getLastColorFromStorage } from '../hooks/useIconPickerPreferences';
 import { useLauncherCacheStore } from './launcherCacheStore';
 
 /** View type for the editor window */
@@ -170,11 +171,13 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   createNew: () => {
     const { folders } = get();
+    const lastColor = getLastColorFromStorage();
     set({
       selectedPromptId: null,
       editedPrompt: {
         ...emptyPrompt,
         folder: folders[0] || 'uncategorized',
+        color: lastColor,
       },
       isDirty: false,
       autoSaveStatus: 'idle',
