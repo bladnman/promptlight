@@ -136,11 +136,12 @@ pub fn run() {
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")
-        .run(|app_handle, event| {
+        .run(|_app_handle, _event| {
             // Handle dock icon click on macOS
-            if let RunEvent::Reopen { .. } = event {
+            #[cfg(target_os = "macos")]
+            if let RunEvent::Reopen { .. } = _event {
                 // Check if editor window exists and is visible
-                if let Some(editor) = app_handle.get_webview_window("editor") {
+                if let Some(editor) = _app_handle.get_webview_window("editor") {
                     if editor.is_visible().unwrap_or(false) {
                         let _ = editor.set_focus();
                         return;
@@ -148,7 +149,7 @@ pub fn run() {
                 }
 
                 // Otherwise show the launcher
-                if let Some(launcher) = app_handle.get_webview_window("launcher") {
+                if let Some(launcher) = _app_handle.get_webview_window("launcher") {
                     // Position and show launcher (similar to global shortcut logic)
                     let positioned = if let Some(bounds) = get_key_window_screen_bounds() {
                         let x = bounds.x + (bounds.width - WINDOW_WIDTH) / 2.0;
