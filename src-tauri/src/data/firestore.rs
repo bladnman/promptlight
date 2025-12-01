@@ -254,6 +254,7 @@ impl FirestoreClient {
             prompts: prompt_metadata,
             folders: meta.folders,
             folder_meta: meta.folder_meta,
+            seeded: true, // Cloud users have already been seeded
         };
 
         Ok((index, prompts))

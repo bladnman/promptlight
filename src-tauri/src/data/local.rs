@@ -207,8 +207,9 @@ impl LocalDataStore {
         let index: PromptIndex =
             serde_json::from_str(&content).map_err(|e| format!("Failed to parse index: {}", e))?;
 
-        // If index exists but has no prompts, seed samples
-        if index.prompts.is_empty() {
+        // Only seed if this is a fresh install (never seeded before)
+        // Don't reseed if user intentionally deleted all prompts
+        if index.prompts.is_empty() && !index.seeded {
             return self.seed_sample_prompts();
         }
 

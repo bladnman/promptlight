@@ -174,7 +174,9 @@ pub fn register_hotkey(app: &AppHandle, hotkey_str: &str) -> Result<(), String> 
                     let _ = window.hide();
                 } else {
                     // Capture previous app before showing (for paste-back feature)
-                    let _ = previous_app::capture_previous_app();
+                    if let Err(e) = previous_app::capture_previous_app() {
+                        eprintln!("[hotkey] Failed to capture previous app: {}", e);
+                    }
 
                     // Position on the screen with the key window (uses fast native NSScreen API)
                     let positioned = if let Some(bounds) = get_key_window_screen_bounds() {
