@@ -4,7 +4,7 @@ use std::fs;
 use super::get_base_data_dir;
 
 /// General application settings
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GeneralSettings {
     pub auto_launch: bool,
@@ -17,6 +17,15 @@ pub struct GeneralSettings {
 /// Default hotkey: Cmd/Ctrl+Shift+Space
 fn default_hotkey() -> Option<String> {
     Some("CommandOrControl+Shift+Space".to_string())
+}
+
+impl Default for GeneralSettings {
+    fn default() -> Self {
+        Self {
+            auto_launch: false,
+            hotkey: default_hotkey(),
+        }
+    }
 }
 
 /// Cloud sync settings

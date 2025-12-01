@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { useLauncherStore } from '../stores/launcherStore';
 import { useLauncherCacheStore } from '../stores/launcherCacheStore';
 import type { SearchResult } from '../types';
@@ -93,4 +94,15 @@ export function useWindowEvents(inputRef: React.RefObject<HTMLInputElement | nul
       unlisten.then((fn) => fn());
     };
   }, [handleWindowFocus]);
+
+  // Listen for cache invalidation events from other windows (e.g., editor)
+  useEffect(() => {
+    const unlisten = listen('cache-invalidate', () => {
+      useLauncherCacheStore.getState().invalidateAll();
+    });
+
+    return () => {
+      unlisten.then((fn) => fn());
+    };
+  }, []);
 }
