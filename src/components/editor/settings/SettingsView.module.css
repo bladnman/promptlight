@@ -17,6 +17,7 @@
 .nav {
   width: 200px;
   min-width: 200px;
+  height: 100%;
   background: var(--bg-secondary);
   padding: var(--space-md);
   display: flex;
@@ -54,6 +55,13 @@
 .navItem.active {
   background: var(--accent-primary);
   color: white;
+}
+
+.version {
+  margin-top: auto;
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 /* Content */

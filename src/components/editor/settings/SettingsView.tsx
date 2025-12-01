@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard, Palette, Sun, Moon, Monitor } from 'lucide-react';
+import { getVersion } from '@tauri-apps/api/app';
 import { useSettingsStore, type AppearanceSettings } from '../../../stores/settingsStore';
 import { useAuthStore } from '../../../stores/authStore';
 import { HotkeyInput } from './HotkeyInput';
@@ -10,6 +11,7 @@ type SettingsSection = 'general' | 'appearance' | 'sync';
 
 export function SettingsView() {
   const [activeSection, setActiveSection] = useState<SettingsSection>('general');
+  const [appVersion, setAppVersion] = useState<string>('');
   const {
     settings,
     systemAutoLaunch,
@@ -37,6 +39,7 @@ export function SettingsView() {
   useEffect(() => {
     loadSettings();
     checkAuth();
+    getVersion().then(setAppVersion).catch(() => {});
   }, [loadSettings, checkAuth]);
 
   if (isLoading) {
@@ -72,6 +75,7 @@ export function SettingsView() {
           {user ? <Cloud size={16} /> : <CloudOff size={16} />}
           Sync
         </button>
+        <div className={styles.version}>v{appVersion || '?'}</div>
       </nav>
 
       <main className={styles.content}>
