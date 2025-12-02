@@ -274,6 +274,7 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
       onClick={startRecording}
       role="button"
       tabIndex={disabled ? -1 : 0}
+      data-testid="hotkey-input"
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();

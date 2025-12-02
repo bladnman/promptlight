@@ -170,6 +170,7 @@ function GeneralSection({
             type="checkbox"
             checked={autoLaunch}
             onChange={(e) => onAutoLaunchChange(e.target.checked)}
+            data-testid="auto-launch-toggle"
           />
           <span className={styles.toggleSlider} />
         </label>
@@ -230,6 +231,7 @@ function AppearanceSection({
               onClick={() => onThemeChange(theme)}
               disabled={isSaving}
               title={themeLabels[theme]}
+              data-testid={`theme-${theme}`}
             >
               {themeIcons[theme]}
               <span>{themeLabels[theme]}</span>
@@ -259,6 +261,7 @@ function AppearanceSection({
                 disabled={isSaving}
                 title={color.name}
                 style={{ '--accent-swatch': color.primary } as React.CSSProperties}
+                data-testid={`accent-${key}`}
               >
                 <span className={styles.accentSwatch} />
                 <span className={styles.accentLabel}>{color.name}</span>
@@ -338,6 +341,7 @@ function SyncSection({
             className={styles.googleButton}
             onClick={onSignIn}
             disabled={isSigningIn || isAuthLoading}
+            data-testid="google-sign-in"
           >
             {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
           </button>
