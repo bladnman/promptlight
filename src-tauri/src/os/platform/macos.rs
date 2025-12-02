@@ -11,6 +11,35 @@ use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use objc::{class, msg_send, sel, sel_impl};
 use std::time::Duration;
 
+/// Check if the app has accessibility permissions (required for CGEvent paste simulation).
+/// Uses AXIsProcessTrusted() from the Accessibility framework.
+pub fn check_accessibility_permission() -> bool {
+    #[link(name = "ApplicationServices", kind = "framework")]
+    extern "C" {
+        fn AXIsProcessTrusted() -> bool;
+    }
+
+    unsafe { AXIsProcessTrusted() }
+}
+
+/// Prompt the user to grant accessibility permissions.
+/// Uses AXIsProcessTrustedWithOptions() which can show a system dialog.
+pub fn request_accessibility_permission() -> bool {
+    #[link(name = "ApplicationServices", kind = "framework")]
+    extern "C" {
+        fn AXIsProcessTrustedWithOptions(options: id) -> bool;
+    }
+
+    unsafe {
+        // Create options dictionary with kAXTrustedCheckOptionPrompt = true
+        let key: id = msg_send![class!(NSString), stringWithUTF8String: b"AXTrustedCheckOptionPrompt\0".as_ptr()];
+        let value: id = msg_send![class!(NSNumber), numberWithBool: true];
+        let options: id = msg_send![class!(NSDictionary), dictionaryWithObject:value forKey:key];
+
+        AXIsProcessTrustedWithOptions(options)
+    }
+}
+
 /// macOS virtual key code for 'V'
 const VK_V: CGKeyCode = 9;
 
@@ -144,6 +173,23 @@ impl MacOSInputSimulator {
 impl InputSimulator for MacOSInputSimulator {
     fn simulate_paste(&self) -> Result<(), String> {
         println!("[platform:macos] Simulating Cmd+V with CGEvent");
+
+        // Check accessibility permissions first
+        if !check_accessibility_permission() {
+            println!("[platform:macos] WARNING: Accessibility permission NOT granted!");
+            println!("[platform:macos] Paste simulation may fail. Grant permission in:");
+            println!("[platform:macos]   System Settings > Privacy & Security > Accessibility");
+
+            // Request permission (shows system dialog)
+            let prompted = request_accessibility_permission();
+            println!("[platform:macos] Permission request dialog shown: {}", prompted);
+
+            if !prompted {
+                return Err("Accessibility permission required for paste. Please grant in System Settings > Privacy & Security > Accessibility".to_string());
+            }
+        } else {
+            println!("[platform:macos] Accessibility permission: GRANTED");
+        }
 
         // Create event source
         let source = CGEventSource::new(CGEventSourceStateID::CombinedSessionState)

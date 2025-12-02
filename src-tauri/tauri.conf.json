@@ -42,7 +42,7 @@
       "icons/icon.ico"
     ],
     "macOS": {
-      "entitlements": null,
+      "entitlements": "entitlements.plist",
       "exceptionDomain": null,
       "frameworks": [],
       "providerShortName": null,

@@ -41,9 +41,35 @@ install_macos() {
     rm -rf /Applications/Promptlight.app 2>/dev/null || true
     cp -R src-tauri/target/release/bundle/macos/Promptlight.app /Applications/
 
+    # Re-sign with entitlements for accessibility features (paste simulation)
+    # Uses "PromptLight Dev" certificate if available for stable identity
+    ENTITLEMENTS="src-tauri/entitlements.plist"
+    if [[ -f "$ENTITLEMENTS" ]]; then
+        echo "Signing app with entitlements..."
+
+        # Check for PromptLight Dev certificate
+        if security find-identity -v -p codesigning | grep -q "PromptLight Dev"; then
+            echo "Using 'PromptLight Dev' certificate for stable identity"
+            codesign --force --deep --sign "PromptLight Dev" --entitlements "$ENTITLEMENTS" /Applications/Promptlight.app
+        else
+            echo "Warning: Using ad-hoc signature (accessibility permissions may reset on updates)"
+            echo "Run scripts/create-dev-certificate.sh to create a stable signing identity"
+            codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" /Applications/Promptlight.app
+        fi
+    fi
+
     echo ""
     echo -e "${GREEN}Done! PromptLight installed to /Applications/Promptlight.app${NC}"
-    echo "Launch it from Spotlight or Finder."
+    echo ""
+    echo -e "${YELLOW}IMPORTANT: For paste functionality, you must grant Accessibility permission:${NC}"
+    echo "  1. Open System Settings > Privacy & Security > Accessibility"
+    echo "  2. Click '+' and add /Applications/Promptlight.app"
+    echo "  3. Ensure the toggle is ON"
+    echo ""
+    echo "Opening Privacy & Security settings..."
+    open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
+    echo ""
+    echo "Launch PromptLight from Spotlight or Finder."
 }
 
 install_linux() {
