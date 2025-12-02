@@ -72,9 +72,16 @@ export class LauncherPage {
     });
   }
 
-  /** Type in search input */
+  /** Type in search input - ensures onChange fires even for empty queries */
   async search(query: string) {
-    await this.searchInput.fill(query);
+    if (query === '') {
+      // To trigger a fresh search with empty query, we need to
+      // type something and then clear it (fill('') on empty input doesn't trigger onChange)
+      await this.searchInput.fill('x');
+      await this.searchInput.clear();
+    } else {
+      await this.searchInput.fill(query);
+    }
   }
 
   /** Clear search input */
