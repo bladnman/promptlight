@@ -13,16 +13,43 @@ pub mod windows;
 pub mod linux;
 
 /// Represents an application identifier (platform-specific)
+/// Can contain a bundle identifier, a PID, or both.
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub struct AppId(pub String);
+pub struct AppId {
+    /// Bundle identifier (e.g., "com.apple.Safari")
+    pub bundle_id: Option<String>,
+    /// Process ID as a fallback
+    pub pid: Option<i32>,
+}
 
 impl AppId {
-    pub fn new(id: impl Into<String>) -> Self {
-        Self(id.into())
+    /// Create an AppId with a bundle identifier
+    pub fn new(bundle_id: impl Into<String>) -> Self {
+        Self {
+            bundle_id: Some(bundle_id.into()),
+            pid: None,
+        }
     }
 
+    /// Create an AppId with only a PID (when bundle ID not available)
+    pub fn from_pid(pid: i32) -> Self {
+        Self {
+            bundle_id: None,
+            pid: Some(pid),
+        }
+    }
+
+    /// Create an AppId with both bundle ID and PID
+    pub fn with_pid(bundle_id: impl Into<String>, pid: i32) -> Self {
+        Self {
+            bundle_id: Some(bundle_id.into()),
+            pid: Some(pid),
+        }
+    }
+
+    /// Get the bundle ID if available
     pub fn as_str(&self) -> &str {
-        &self.0
+        self.bundle_id.as_deref().unwrap_or("")
     }
 }
 

@@ -21,7 +21,13 @@ pub fn capture_previous_app() -> Result<(), String> {
 
     match tracker.capture_focused_app() {
         Ok(Some(app_id)) => {
-            println!("[previous_app] Captured: {}", app_id.as_str());
+            let display = match (&app_id.bundle_id, app_id.pid) {
+                (Some(b), Some(p)) => format!("{} (pid: {})", b, p),
+                (Some(b), None) => b.clone(),
+                (None, Some(p)) => format!("pid:{}", p),
+                (None, None) => "unknown".to_string(),
+            };
+            println!("[previous_app] Captured: {}", display);
             if let Ok(mut guard) = PREVIOUS_APP.lock() {
                 *guard = Some(app_id);
             }
@@ -61,7 +67,13 @@ pub fn activate_previous_app() -> Result<bool, String> {
         }
     };
 
-    println!("[previous_app] Activating: {}", app_id.as_str());
+    let display = match (&app_id.bundle_id, app_id.pid) {
+        (Some(b), Some(p)) => format!("{} (pid: {})", b, p),
+        (Some(b), None) => b.clone(),
+        (None, Some(p)) => format!("pid:{}", p),
+        (None, None) => "unknown".to_string(),
+    };
+    println!("[previous_app] Activating: {}", display);
 
     let tracker = platform::create_focus_tracker();
     tracker.activate_app(&app_id)
@@ -90,7 +102,10 @@ mod tests {
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
             *guard = Some(AppId::new("com.apple.TextEdit"));
         }
-        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.TextEdit".to_string()));
+        assert_eq!(
+            get_previous_app().and_then(|a| a.bundle_id),
+            Some("com.apple.TextEdit".to_string())
+        );
 
         // Clear it
         clear_previous_app();
@@ -110,13 +125,37 @@ mod tests {
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
             *guard = Some(AppId::new("com.apple.Safari"));
         }
-        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.Safari".to_string()));
+        assert_eq!(
+            get_previous_app().and_then(|a| a.bundle_id),
+            Some("com.apple.Safari".to_string())
+        );
 
         // Overwrite
         if let Ok(mut guard) = PREVIOUS_APP.lock() {
             *guard = Some(AppId::new("com.apple.Notes"));
         }
-        assert_eq!(get_previous_app().map(|a| a.0), Some("com.apple.Notes".to_string()));
+        assert_eq!(
+            get_previous_app().and_then(|a| a.bundle_id),
+            Some("com.apple.Notes".to_string())
+        );
+
+        clear_previous_app();
+    }
+
+    #[test]
+    fn test_pid_only_storage() {
+        clear_previous_app();
+
+        // Store a PID-only app ID (simulating app without bundle ID)
+        if let Ok(mut guard) = PREVIOUS_APP.lock() {
+            *guard = Some(AppId::from_pid(12345));
+        }
+
+        let stored = get_previous_app();
+        assert!(stored.is_some());
+        let app_id = stored.unwrap();
+        assert_eq!(app_id.bundle_id, None);
+        assert_eq!(app_id.pid, Some(12345));
 
         clear_previous_app();
     }
