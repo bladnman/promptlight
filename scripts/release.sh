@@ -1,6 +1,6 @@
 #!/bin/bash
 # PromptLight Release Script
-# Creates a new release by tagging and pushing to GitHub
+# Builds locally with code signing, installs, and publishes to GitHub
 #
 # Usage:
 #   ./scripts/release.sh [version]
@@ -144,6 +144,14 @@ fi
 # Confirm release
 echo ""
 echo -e "Ready to release ${GREEN}v${NEW_VERSION}${NC}"
+echo ""
+echo "This will:"
+echo "  1. Update version in package.json, Cargo.toml, tauri.conf.json"
+echo "  2. Build and sign the app with PromptLight Dev certificate"
+echo "  3. Install to /Applications"
+echo "  4. Create git tag and push"
+echo "  5. Create GitHub release with DMG"
+echo ""
 read -p "Proceed? [Y/n] " -n 1 -r
 echo ""
 if [[ $REPLY =~ ^[Nn]$ ]]; then
@@ -151,19 +159,88 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
     exit 0
 fi
 
+# Update version in files
+echo ""
+echo "Updating version to $NEW_VERSION..."
+sed -i.bak 's/"version": "[^"]*"/"version": "'"$NEW_VERSION"'"/' package.json
+sed -i.bak 's/^version = "[^"]*"/version = "'"$NEW_VERSION"'"/' src-tauri/Cargo.toml
+sed -i.bak 's/"version": "[^"]*"/"version": "'"$NEW_VERSION"'"/' src-tauri/tauri.conf.json
+rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
+
+# Build release
+echo ""
+echo "Building release..."
+npm run tauri build
+
+# Sign with certificate
+BUNDLE_PATH="src-tauri/target/release/bundle/macos/Promptlight.app"
+ENTITLEMENTS="src-tauri/entitlements.plist"
+SIGN_IDENTITY="PromptLight Dev"
+
+if security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
+    echo ""
+    echo "Signing with '$SIGN_IDENTITY' certificate..."
+    codesign --force --deep --sign "$SIGN_IDENTITY" --entitlements "$ENTITLEMENTS" "$BUNDLE_PATH"
+else
+    echo -e "${YELLOW}Warning: '$SIGN_IDENTITY' certificate not found, using ad-hoc signing${NC}"
+    codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" "$BUNDLE_PATH"
+fi
+
+# Install locally
+echo ""
+echo "Installing to /Applications..."
+pkill -9 -f "[Pp]romptlight" 2>/dev/null || true
+sleep 1
+rm -rf /Applications/Promptlight.app
+cp -R "$BUNDLE_PATH" /Applications/
+echo -e "${GREEN}Installed to /Applications/Promptlight.app${NC}"
+
+# Find DMG
+DMG_PATH=$(find src-tauri/target/release/bundle/dmg -name "*.dmg" | head -1)
+if [[ -z "$DMG_PATH" ]]; then
+    echo -e "${RED}Error: No DMG found in src-tauri/target/release/bundle/dmg${NC}"
+    exit 1
+fi
+echo "DMG: $DMG_PATH"
+
+# Commit version bump
+echo ""
+echo "Committing version bump..."
+git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json
+git commit -m "chore: bump version to v$NEW_VERSION"
+
 # Create and push tag
 echo ""
 echo "Creating tag $NEW_TAG..."
 git tag "$NEW_TAG"
 
-echo "Pushing tag to GitHub..."
-git push origin "$NEW_TAG"
+echo "Pushing to GitHub..."
+git push origin "$CURRENT_BRANCH" --tags
+
+# Create GitHub release
+echo ""
+echo "Creating GitHub release..."
+gh release create "$NEW_TAG" \
+    --title "PromptLight v$NEW_VERSION" \
+    --notes "## PromptLight v$NEW_VERSION
+
+### Installation
+
+**macOS:**
+- Download the DMG file below
+- Open the DMG and drag PromptLight to Applications
+- On first launch, right-click and select 'Open' to bypass Gatekeeper
+
+**First-time setup:**
+- Grant Accessibility permission in System Settings > Privacy & Security > Accessibility
+- This enables the paste-into-app feature
+
+### Changelog
+See commit history for changes." \
+    "$DMG_PATH"
 
 echo ""
-echo -e "${GREEN}Release v${NEW_VERSION} triggered!${NC}"
+echo -e "${GREEN}Release v${NEW_VERSION} complete!${NC}"
 echo ""
-echo "Monitor the build at:"
-echo "  https://github.com/bladnman/promptlight/actions"
-echo ""
-echo "Once complete, the release will be at:"
+echo "Release URL:"
 echo "  https://github.com/bladnman/promptlight/releases/tag/$NEW_TAG"
