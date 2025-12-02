@@ -1,10 +1,8 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import { emit } from '@tauri-apps/api/event';
 import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
 import { getLastColorFromStorage } from '../hooks/useIconPickerPreferences';
-import { useLauncherCacheStore } from './launcherCacheStore';
 
 /** View type for the editor window */
 export type EditorView = 'prompts' | 'settings';
@@ -222,11 +220,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         autoSaveStatus: 'saved',
       });
 
-      // Invalidate launcher cache so next panel open shows updated data
-      useLauncherCacheStore.getState().invalidateAll();
-      // Emit event for cross-window cache invalidation (launcher is separate webview)
-      emit('cache-invalidate');
-
       // Refresh prompts list
       get().loadPrompts();
 
@@ -262,11 +255,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
         editedPrompt: null,
         isDirty: false,
       });
-
-      // Invalidate launcher cache so next panel open shows updated data
-      useLauncherCacheStore.getState().invalidateAll();
-      // Emit event for cross-window cache invalidation (launcher is separate webview)
-      emit('cache-invalidate');
 
       // Refresh prompts list
       get().loadPrompts();
@@ -411,10 +399,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     try {
       await invoke('rename_folder', { oldName, newName: newFolder });
-      // Invalidate launcher cache since folder names affect display
-      useLauncherCacheStore.getState().invalidateAll();
-      // Emit event for cross-window cache invalidation (launcher is separate webview)
-      emit('cache-invalidate');
       await get().loadPrompts();
       set({ editingFolder: null });
       return true;
@@ -428,10 +412,6 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   deleteFolder: async (name: string) => {
     try {
       await invoke('delete_folder', { name });
-      // Invalidate launcher cache since prompts may have moved
-      useLauncherCacheStore.getState().invalidateAll();
-      // Emit event for cross-window cache invalidation (launcher is separate webview)
-      emit('cache-invalidate');
       await get().loadPrompts();
       return true;
     } catch (error) {

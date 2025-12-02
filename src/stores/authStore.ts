@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import { useEditorStore } from './editorStore';
-import { useLauncherCacheStore } from './launcherCacheStore';
 
 /** User information from Firebase Auth */
 export interface User {
@@ -71,7 +70,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
           idToken: session.tokens.idToken,
         });
         // Reload prompts after sync completes (cloud data is now downloaded)
-        useLauncherCacheStore.getState().invalidateAll();
         await useEditorStore.getState().loadPrompts();
       }
       set({
@@ -97,7 +95,6 @@ export const useAuthStore = create<AuthStore>((set) => ({
         idToken: session.tokens.idToken,
       });
       // Reload prompts after sync completes (cloud data is now downloaded)
-      useLauncherCacheStore.getState().invalidateAll();
       await useEditorStore.getState().loadPrompts();
       set({
         user: session.user,

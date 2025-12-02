@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useAuthStore, type User, type AuthSession } from '../../stores/authStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { useLauncherCacheStore } from '../../stores/launcherCacheStore';
 import { getMockInvoke } from '../setup';
 
 // Mock user data
@@ -33,7 +32,6 @@ describe('authStore', () => {
 
     // Reset related stores
     useEditorStore.getState().reset();
-    useLauncherCacheStore.getState().invalidateAll();
 
     getMockInvoke().mockReset();
   });
@@ -96,35 +94,6 @@ describe('authStore', () => {
       // Note: checkAuth doesn't set error, just logs and sets user to null
     });
 
-    it('should invalidate caches and reload prompts on successful auth', async () => {
-      // Set up some cached data
-      useLauncherCacheStore.getState().setLaunchCache([
-        {
-          prompt: {
-            id: '1',
-            name: 'Cached',
-            folder: 'test',
-            description: '',
-            filename: 't.md',
-            useCount: 0,
-            lastUsed: null,
-            created: '',
-            updated: '',
-          },
-          score: 1,
-        },
-      ]);
-
-      getMockInvoke()
-        .mockResolvedValueOnce(mockSession) // get_current_auth
-        .mockResolvedValueOnce(undefined) // set_sync_auth
-        .mockResolvedValueOnce({ prompts: [], folders: ['uncategorized'] }); // get_index
-
-      await useAuthStore.getState().checkAuth();
-
-      // Cache should be invalidated
-      expect(useLauncherCacheStore.getState().getLaunchCache()).toBeNull();
-    });
   });
 
   describe('signInWithGoogle', () => {
