@@ -205,11 +205,15 @@ fi
 echo "DMG: $DMG_PATH"
 DMG_FILENAME=$(basename "$DMG_PATH")
 
-# Commit version bump
+# Commit version bump (if there are changes)
 echo ""
 echo "Committing version bump..."
 git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json
-git commit -m "chore: bump version to v$NEW_VERSION"
+if git diff --cached --quiet; then
+    echo "Version already at $NEW_VERSION, no commit needed"
+else
+    git commit -m "chore: bump version to v$NEW_VERSION"
+fi
 
 # Create and push tag
 echo ""
