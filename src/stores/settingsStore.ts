@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../services/backend';
 import {
   ACCENT_COLORS,
   type AccentColorName,
@@ -116,8 +116,8 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const [settings, autoLaunchEnabled] = await Promise.all([
-        invoke<AppSettings>('get_settings'),
-        invoke<boolean>('get_autostart_enabled').catch(() => false),
+        backend.getSettings(),
+        backend.getAutoStartEnabled().catch(() => false),
       ]);
       // Ensure appearance has defaults if missing (backwards compat)
       const normalizedSettings: AppSettings = {
@@ -149,7 +149,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
     set({ isSaving: true, error: null });
     try {
-      await invoke('save_settings', { settings: newSettings });
+      await backend.saveSettings(newSettings);
       set({ settings: newSettings, isSaving: false });
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -166,18 +166,18 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
     set({ isSaving: true, error: null });
     try {
-      await invoke('save_settings', { settings: newSettings });
+      await backend.saveSettings(newSettings);
 
       // If sync was just enabled, trigger initial sync to cloud
       if (updates.enabled === true && !settings.sync.enabled) {
         console.log('Sync enabled - uploading prompts to cloud...');
-        await invoke('sync_to_cloud');
+        await backend.syncToCloud();
         // Update lastSync timestamp
         const syncedSettings: AppSettings = {
           ...newSettings,
           sync: { ...newSettings.sync, lastSync: new Date().toISOString() },
         };
-        await invoke('save_settings', { settings: syncedSettings });
+        await backend.saveSettings(syncedSettings);
         set({ settings: syncedSettings, isSaving: false });
       } else {
         set({ settings: newSettings, isSaving: false });
@@ -201,7 +201,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
 
     set({ isSaving: true, error: null });
     try {
-      await invoke('save_settings', { settings: newSettings });
+      await backend.saveSettings(newSettings);
       set({ settings: newSettings, isSaving: false });
     } catch (error) {
       console.error('Failed to save settings:', error);
@@ -224,7 +224,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
   setAutoLaunch: async (enabled) => {
     set({ isSaving: true, error: null });
     try {
-      await invoke('set_autostart_enabled', { enabled });
+      await backend.setAutoStartEnabled(enabled);
       set({ systemAutoLaunch: enabled, isSaving: false });
     } catch (error) {
       console.error('Failed to set auto-launch:', error);
@@ -237,7 +237,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
     set({ isSaving: true, error: null });
     try {
       // Call the backend to register/unregister the hotkey
-      await invoke('set_hotkey', { hotkey });
+      await backend.setHotkey(hotkey);
       // Update local state
       const newSettings: AppSettings = {
         ...settings,

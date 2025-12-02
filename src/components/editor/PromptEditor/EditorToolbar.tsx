@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../../../services/backend';
 import { Copy, ClipboardPaste, Trash2, Check, X } from 'lucide-react';
 import { useEditorStore } from '../../../stores/editorStore';
 import { useDerivedFolders } from '../../../hooks/useDerivedFolders';
@@ -65,7 +65,7 @@ export function EditorToolbar() {
     if (!editedPrompt?.content) return;
 
     try {
-      await invoke('copy_to_clipboard', { text: editedPrompt.content });
+      await backend.copyToClipboard(editedPrompt.content);
       setCopyStatus('copied');
       setTimeout(() => setCopyStatus('idle'), 2000);
     } catch (error) {
@@ -78,9 +78,9 @@ export function EditorToolbar() {
 
     try {
       if (editedPrompt.id) {
-        await invoke('record_usage', { id: editedPrompt.id });
+        await backend.recordUsage(editedPrompt.id);
       }
-      await invoke('paste_from_editor', { text: editedPrompt.content });
+      await backend.pasteFromEditor(editedPrompt.content);
     } catch (error) {
       console.error('Failed to paste:', error);
     }

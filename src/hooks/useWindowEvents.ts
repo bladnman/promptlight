@@ -1,8 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../services/backend';
 import { useLauncherStore } from '../stores/launcherStore';
-import type { SearchResult } from '../types';
 
 /**
  * Hook for listening to window visibility events
@@ -20,9 +19,7 @@ export function useWindowEvents(inputRef: React.RefObject<HTMLInputElement | nul
 
     // Always fetch fresh data from backend
     try {
-      const results = await invoke<SearchResult[]>('search_prompts', {
-        query: '',
-      });
+      const results = await backend.searchPrompts('');
       setResults(results);
     } catch (error) {
       console.error('Failed to load prompts on focus:', error);
@@ -42,7 +39,7 @@ export function useWindowEvents(inputRef: React.RefObject<HTMLInputElement | nul
         handleWindowFocus();
       } else {
         // Dismiss window when focus is lost (click away)
-        invoke('dismiss_window').catch(console.error);
+        backend.dismissWindow().catch(console.error);
       }
     });
 

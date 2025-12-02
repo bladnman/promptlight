@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../../../services/backend';
 import { Keyboard, X } from 'lucide-react';
 import styles from './HotkeyInput.module.css';
 
@@ -133,7 +133,7 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
     // Resume the global hotkey
     if (isPaused) {
       try {
-        await invoke('resume_hotkey');
+        await backend.resumeHotkey();
       } catch (e) {
         console.error('Failed to resume hotkey:', e);
       }
@@ -243,7 +243,7 @@ export function HotkeyInput({ value, onChange, disabled }: HotkeyInputProps) {
 
     // Pause the global hotkey FIRST, then wait for it to complete
     try {
-      await invoke('pause_hotkey');
+      await backend.pauseHotkey();
       setIsPaused(true);
     } catch (e) {
       console.error('Failed to pause hotkey:', e);

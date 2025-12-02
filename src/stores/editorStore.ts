@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
-import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
+import { backend } from '../services/backend';
+import type { Prompt, PromptMetadata, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
 import { getLastColorFromStorage } from '../hooks/useIconPickerPreferences';
 
@@ -135,7 +135,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   loadPrompts: async () => {
     try {
-      const index = await invoke<PromptIndex>('get_index');
+      const index = await backend.getIndex();
       set({
         prompts: index.prompts,
         folders: index.folders.length > 0 ? index.folders : ['uncategorized'],
@@ -150,7 +150,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   loadPrompt: async (id: string) => {
     set({ isLoading: true, error: null });
     try {
-      const prompt = await invoke<Prompt>('get_prompt', { id });
+      const prompt = await backend.getPrompt(id);
       set({
         selectedPromptId: id,
         editedPrompt: prompt,
@@ -207,9 +207,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
     try {
       // ink-mde preserves whitespace natively, so save content as-is
-      const saved = await invoke<PromptMetadata>('save_prompt', {
-        prompt: editedPrompt,
-      });
+      const saved = await backend.savePrompt(editedPrompt);
 
       // Update the edited prompt with saved metadata
       set({
@@ -247,7 +245,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     if (!idToDelete) return false;
 
     try {
-      await invoke('delete_prompt', { id: idToDelete });
+      await backend.deletePrompt(idToDelete);
 
       // Clear editor and refresh list
       set({
@@ -327,7 +325,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
 
     try {
-      await invoke('add_folder', { name: folderName });
+      await backend.addFolder(folderName);
       set({
         folders: [...folders, folderName],
         isAddingFolder: false,
@@ -362,7 +360,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
 
     try {
-      await invoke('add_folder', { name: folderName });
+      await backend.addFolder(folderName);
       const newFolders = [...folders, folderName];
       set({ folders: newFolders });
 
@@ -398,7 +396,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     }
 
     try {
-      await invoke('rename_folder', { oldName, newName: newFolder });
+      await backend.renameFolder(oldName, newFolder);
       await get().loadPrompts();
       set({ editingFolder: null });
       return true;
@@ -411,7 +409,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   deleteFolder: async (name: string) => {
     try {
-      await invoke('delete_folder', { name });
+      await backend.deleteFolder(name);
       await get().loadPrompts();
       return true;
     } catch (error) {

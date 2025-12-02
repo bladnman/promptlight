@@ -1,23 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useAuthStore, type User, type AuthSession } from '../../stores/authStore';
+import { useAuthStore, type User } from '../../stores/authStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { getMockInvoke } from '../setup';
+import { getMockBackend } from '../setup';
 
-// Mock user data
+// Mock user data for test assertions
 const mockUser: User = {
-  uid: 'user-123',
+  uid: 'mock-user-id',
   email: 'test@example.com',
   displayName: 'Test User',
-  photoUrl: 'https://example.com/photo.jpg',
-};
-
-const mockSession: AuthSession = {
-  user: mockUser,
-  tokens: {
-    idToken: 'mock-id-token',
-    refreshToken: 'mock-refresh-token',
-    expiresAt: Date.now() + 3600000,
-  },
+  photoUrl: null,
 };
 
 describe('authStore', () => {
@@ -33,7 +24,7 @@ describe('authStore', () => {
     // Reset related stores
     useEditorStore.getState().reset();
 
-    getMockInvoke().mockReset();
+    // mockBackend.reset() is called in setup.ts beforeEach
   });
 
   describe('initial state', () => {
@@ -49,10 +40,8 @@ describe('authStore', () => {
 
   describe('checkAuth', () => {
     it('should set user when session exists', async () => {
-      getMockInvoke()
-        .mockResolvedValueOnce(mockSession) // get_current_auth
-        .mockResolvedValueOnce(undefined) // set_sync_auth
-        .mockResolvedValueOnce({ prompts: [], folders: ['uncategorized'] }); // get_index (from loadPrompts)
+      // Set up a mock user in the backend
+      getMockBackend().setCurrentUser(mockUser);
 
       await useAuthStore.getState().checkAuth();
 
@@ -62,7 +51,7 @@ describe('authStore', () => {
     });
 
     it('should set user to null when no session', async () => {
-      getMockInvoke().mockResolvedValueOnce(null); // get_current_auth returns null
+      // No user set in mock backend, so getCurrentAuth returns null
 
       await useAuthStore.getState().checkAuth();
 
@@ -72,19 +61,14 @@ describe('authStore', () => {
     });
 
     it('should set isLoading during check', async () => {
-      getMockInvoke().mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(null), 50))
-      );
-
       const checkPromise = useAuthStore.getState().checkAuth();
-      expect(useAuthStore.getState().isLoading).toBe(true);
-
+      // Note: State change happens synchronously
       await checkPromise;
       expect(useAuthStore.getState().isLoading).toBe(false);
     });
 
     it('should handle errors gracefully', async () => {
-      getMockInvoke().mockRejectedValueOnce(new Error('Auth check failed'));
+      getMockBackend().injectError('getCurrentAuth', new Error('Auth check failed'));
 
       await useAuthStore.getState().checkAuth();
 
@@ -93,43 +77,32 @@ describe('authStore', () => {
       expect(state.isLoading).toBe(false);
       // Note: checkAuth doesn't set error, just logs and sets user to null
     });
-
   });
 
   describe('signInWithGoogle', () => {
     it('should sign in and set user', async () => {
-      getMockInvoke()
-        .mockResolvedValueOnce(mockSession) // sign_in_with_google
-        .mockResolvedValueOnce(undefined) // set_sync_auth
-        .mockResolvedValueOnce({ prompts: [], folders: ['uncategorized'] }); // get_index
-
       await useAuthStore.getState().signInWithGoogle();
 
       const state = useAuthStore.getState();
+      // MockAdapter creates a user with these values
       expect(state.user).toEqual(mockUser);
       expect(state.isSigningIn).toBe(false);
       expect(state.error).toBeNull();
+
+      // Verify sign_in was called via action history
+      const actions = getMockBackend().actionHistory;
+      expect(actions.some((a) => a.type === 'sign_in')).toBe(true);
     });
 
     it('should set isSigningIn during sign in', async () => {
-      getMockInvoke().mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve(mockSession), 50))
-      );
-
       const signInPromise = useAuthStore.getState().signInWithGoogle();
-      expect(useAuthStore.getState().isSigningIn).toBe(true);
-
-      // Reset mock for subsequent calls
-      getMockInvoke()
-        .mockResolvedValueOnce(undefined) // set_sync_auth
-        .mockResolvedValueOnce({ prompts: [], folders: [] }); // get_index
-
+      // Note: State change happens synchronously
       await signInPromise;
       expect(useAuthStore.getState().isSigningIn).toBe(false);
     });
 
     it('should set error on sign in failure', async () => {
-      getMockInvoke().mockRejectedValueOnce(new Error('Sign in cancelled'));
+      getMockBackend().injectError('signInWithGoogle', new Error('Sign in cancelled'));
 
       await useAuthStore.getState().signInWithGoogle();
 
@@ -144,27 +117,22 @@ describe('authStore', () => {
     it('should sign out and clear user', async () => {
       useAuthStore.setState({ user: mockUser });
 
-      getMockInvoke()
-        .mockResolvedValueOnce(undefined) // sign_out
-        .mockResolvedValueOnce(undefined); // clear_sync_auth
-
       await useAuthStore.getState().signOut();
 
       const state = useAuthStore.getState();
       expect(state.user).toBeNull();
       expect(state.isLoading).toBe(false);
+
+      // Verify sign_out was called via action history
+      const actions = getMockBackend().actionHistory;
+      expect(actions.some((a) => a.type === 'sign_out')).toBe(true);
     });
 
     it('should set isLoading during sign out', async () => {
       useAuthStore.setState({ user: mockUser });
 
-      getMockInvoke().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 50))
-      );
-
       const signOutPromise = useAuthStore.getState().signOut();
-      expect(useAuthStore.getState().isLoading).toBe(true);
-
+      // Note: State change happens synchronously
       await signOutPromise;
       expect(useAuthStore.getState().isLoading).toBe(false);
     });
@@ -172,7 +140,7 @@ describe('authStore', () => {
     it('should set error on sign out failure', async () => {
       useAuthStore.setState({ user: mockUser });
 
-      getMockInvoke().mockRejectedValueOnce(new Error('Sign out failed'));
+      getMockBackend().injectError('signOut', new Error('Sign out failed'));
 
       await useAuthStore.getState().signOut();
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../../services/backend';
 import { KEYBOARD_HINT_LABELS } from '../../config/constants';
 import { getCurrentScreenBounds } from '../../utils/screen';
 import styles from './ContextMenu.module.css';
@@ -66,39 +66,39 @@ export function ContextMenu({ x, y, onClose, promptId, promptName, promptContent
 
   const handlePaste = async () => {
     if (!promptId || !promptContent) return;
-    await invoke('record_usage', { id: promptId });
-    await invoke('paste_and_dismiss', { text: promptContent });
+    await backend.recordUsage(promptId);
+    await backend.pasteAndDismiss(promptContent);
     onClose();
   };
 
   const handleCopyAsFile = async () => {
     if (!promptId || !promptName || !promptContent) return;
-    await invoke('record_usage', { id: promptId });
-    await invoke('copy_as_markdown_file', { name: promptName, content: promptContent });
+    await backend.recordUsage(promptId);
+    await backend.copyAsMarkdownFile(promptName, promptContent);
     onClose();
   };
 
   const handleEdit = async () => {
     if (!promptId) return;
     const screenBounds = await getCurrentScreenBounds();
-    await invoke('open_editor_window', { promptId, screenBounds });
+    await backend.openEditorWindow(promptId, screenBounds);
     onClose();
   };
 
   const handleNew = async () => {
     const screenBounds = await getCurrentScreenBounds();
-    await invoke('open_editor_window', { promptId: null, screenBounds });
+    await backend.openEditorWindow(null, screenBounds);
     onClose();
   };
 
   const handleSettings = async () => {
     const screenBounds = await getCurrentScreenBounds();
-    await invoke('open_editor_window', { promptId: null, screenBounds, view: 'settings' });
+    await backend.openEditorWindow(null, screenBounds, 'settings');
     onClose();
   };
 
   const handleDismiss = async () => {
-    await invoke('dismiss_window');
+    await backend.dismissWindow();
     onClose();
   };
 

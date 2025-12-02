@@ -1,9 +1,8 @@
 import { useEffect, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../services/backend';
 import { useLauncherStore } from '../stores/launcherStore';
 import { HOTKEYS } from '../config/constants';
 import { getCurrentScreenBounds } from '../utils/screen';
-import type { Prompt } from '../types';
 
 /**
  * Hook for keyboard navigation and actions
@@ -23,7 +22,7 @@ export function useKeyboardNav() {
     // Don't reset here - the window focus handler will reset and reload when shown again
     // This prevents the "No prompts" flash
     try {
-      await invoke('dismiss_window');
+      await backend.dismissWindow();
     } catch (error) {
       console.error('Failed to hide window:', error);
     }
@@ -41,15 +40,13 @@ export function useKeyboardNav() {
 
       if (currentMode === 'promoted' && currentPromoted) {
         // Get the full prompt content
-        const prompt = await invoke<Prompt>('get_prompt', {
-          id: currentPromoted.id,
-        });
+        const prompt = await backend.getPrompt(currentPromoted.id);
         textToPaste = currentRider
           ? `${prompt.content} ${currentRider}`
           : prompt.content;
 
         // Record usage
-        await invoke('record_usage', { id: currentPromoted.id });
+        await backend.recordUsage(currentPromoted.id);
       } else {
         const selected = currentResults[currentIndex];
         if (!selected) {
@@ -60,20 +57,18 @@ export function useKeyboardNav() {
         console.log('Getting prompt:', selected.prompt.id);
 
         // Get the full prompt content
-        const prompt = await invoke<Prompt>('get_prompt', {
-          id: selected.prompt.id,
-        });
+        const prompt = await backend.getPrompt(selected.prompt.id);
 
         console.log('Got prompt content, length:', prompt.content.length);
         textToPaste = prompt.content;
 
         // Record usage
-        await invoke('record_usage', { id: selected.prompt.id });
+        await backend.recordUsage(selected.prompt.id);
       }
 
       console.log('Copying to clipboard, text length:', textToPaste.length);
       // Paste and dismiss - reset will happen when window is shown again via focus handler
-      await invoke('paste_and_dismiss', { text: textToPaste });
+      await backend.pasteAndDismiss(textToPaste);
       console.log('Copied to clipboard successfully');
     } catch (error) {
       console.error('Failed to paste:', error);
@@ -93,16 +88,14 @@ export function useKeyboardNav() {
 
       if (currentMode === 'promoted' && currentPromoted) {
         // Get the full prompt content
-        const prompt = await invoke<Prompt>('get_prompt', {
-          id: currentPromoted.id,
-        });
+        const prompt = await backend.getPrompt(currentPromoted.id);
         name = currentPromoted.name;
         content = currentRider
           ? `${prompt.content} ${currentRider}`
           : prompt.content;
 
         // Record usage
-        await invoke('record_usage', { id: currentPromoted.id });
+        await backend.recordUsage(currentPromoted.id);
       } else {
         const selected = currentResults[currentIndex];
         if (!selected) {
@@ -113,20 +106,18 @@ export function useKeyboardNav() {
         console.log('Getting prompt:', selected.prompt.id);
 
         // Get the full prompt content
-        const prompt = await invoke<Prompt>('get_prompt', {
-          id: selected.prompt.id,
-        });
+        const prompt = await backend.getPrompt(selected.prompt.id);
 
         console.log('Got prompt content, length:', prompt.content.length);
         name = selected.prompt.name;
         content = prompt.content;
 
         // Record usage
-        await invoke('record_usage', { id: selected.prompt.id });
+        await backend.recordUsage(selected.prompt.id);
       }
 
       console.log('Copying as markdown file:', name);
-      await invoke('copy_as_markdown_file', { name, content });
+      await backend.copyAsMarkdownFile(name, content);
       console.log('Copied as file successfully');
     } catch (error) {
       console.error('Failed to copy as file:', error);
@@ -152,7 +143,7 @@ export function useKeyboardNav() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n') {
         e.preventDefault();
         getCurrentScreenBounds().then((screenBounds) => {
-          invoke('open_editor_window', { promptId: null, screenBounds });
+          backend.openEditorWindow(null, screenBounds);
         });
         return;
       }
@@ -161,7 +152,7 @@ export function useKeyboardNav() {
       if ((e.metaKey || e.ctrlKey) && e.key === HOTKEYS.OPEN_SETTINGS) {
         e.preventDefault();
         getCurrentScreenBounds().then((screenBounds) => {
-          invoke('open_editor_window', { promptId: null, screenBounds, view: 'settings' });
+          backend.openEditorWindow(null, screenBounds, 'settings');
         });
         return;
       }
@@ -179,7 +170,7 @@ export function useKeyboardNav() {
         const selected = useLauncherStore.getState().getSelectedResult();
         if (selected) {
           getCurrentScreenBounds().then((screenBounds) => {
-            invoke('open_editor_window', { promptId: selected.prompt.id, screenBounds });
+            backend.openEditorWindow(selected.prompt.id, screenBounds);
           });
         }
         return;
