@@ -6,6 +6,22 @@ import type { PromptMetadata, SearchResult } from './prompt';
 export type LauncherMode = 'search' | 'promoted';
 
 /**
+ * Context menu state
+ */
+export interface ContextMenuState {
+  /** Whether menu is open */
+  isOpen: boolean;
+  /** X position */
+  x: number;
+  /** Y position */
+  y: number;
+  /** Target prompt ID (null for empty area click) */
+  promptId: string | null;
+  /** Target prompt name */
+  promptName: string | null;
+}
+
+/**
  * State for the launcher window
  */
 export interface LauncherState {
@@ -23,6 +39,8 @@ export interface LauncherState {
   riderText: string;
   /** Loading state for search */
   isLoading: boolean;
+  /** Context menu state */
+  contextMenu: ContextMenuState;
 }
 
 /**

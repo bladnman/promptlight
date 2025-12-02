@@ -13,7 +13,7 @@
 
 .container:hover:not(.disabled) {
   border-color: var(--border-hover);
-  background: var(--bg-hover);
+  background: var(--hover-bg);
 }
 
 .container:focus {
@@ -93,11 +93,11 @@
 }
 
 .clearButton:hover {
-  background: var(--bg-hover);
+  background: var(--hover-bg);
   color: var(--text-primary);
 }
 
 .clearButton:focus {
   outline: none;
-  background: var(--bg-hover);
+  background: var(--hover-bg);
 }

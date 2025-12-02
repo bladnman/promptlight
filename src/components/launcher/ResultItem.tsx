@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import type { SearchResult } from '../../types';
 import { useLauncherStore } from '../../stores/launcherStore';
 import { Icon } from '../common/Icon';
@@ -12,7 +12,7 @@ interface ResultItemProps {
 }
 
 export function ResultItem({ result, isSelected, index }: ResultItemProps) {
-  const { setSelectedIndex, executeSelected } = useLauncherStore();
+  const { setSelectedIndex, executeSelected, openContextMenu } = useLauncherStore();
   const { prompt } = result;
   const itemRef = useRef<HTMLDivElement>(null);
 
@@ -36,12 +36,20 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
     setSelectedIndex(index);
   };
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedIndex(index);
+    openContextMenu(e.clientX, e.clientY, prompt.id, prompt.name);
+  }, [index, openContextMenu, prompt.id, prompt.name, setSelectedIndex]);
+
   return (
     <div
       ref={itemRef}
       className={`${styles.item} ${isSelected ? styles.selected : ''}`}
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
+      onContextMenu={handleContextMenu}
       role="option"
       aria-selected={isSelected}
     >
@@ -56,9 +64,6 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
       </div>
       <div className={styles.meta}>
         <span className={styles.folder}>{prompt.folder}</span>
-        {prompt.useCount > 0 && (
-          <span className={styles.useCount}>{prompt.useCount}</span>
-        )}
       </div>
     </div>
   );

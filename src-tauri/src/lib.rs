@@ -123,6 +123,7 @@ pub fn run() {
             os::paste::dismiss_window,
             os::paste::copy_to_clipboard,
             os::paste::paste_from_editor,
+            os::paste::copy_as_markdown_file,
             os::window::open_editor_window,
             // Hotkey commands
             os::hotkey::get_current_hotkey,

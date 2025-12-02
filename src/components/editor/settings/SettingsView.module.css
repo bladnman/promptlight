@@ -248,7 +248,7 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  background: var(--bg-hover);
+  background: var(--hover-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,7 +287,7 @@
 }
 
 .signOutButton:hover:not(:disabled) {
-  background: var(--bg-hover);
+  background: var(--hover-bg);
   color: var(--text-primary);
   border-color: var(--border-default);
 }

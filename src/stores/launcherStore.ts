@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { LauncherState, SearchResult } from '../types';
+import type { LauncherState, SearchResult, ContextMenuState } from '../types';
 
 interface LauncherActions {
   /** Set the search query */
@@ -30,9 +30,21 @@ interface LauncherActions {
   getFinalText: () => string;
   /** Get currently selected result */
   getSelectedResult: () => SearchResult | null;
+  /** Open context menu */
+  openContextMenu: (x: number, y: number, promptId?: string, promptName?: string) => void;
+  /** Close context menu */
+  closeContextMenu: () => void;
 }
 
 type LauncherStore = LauncherState & LauncherActions;
+
+const initialContextMenu: ContextMenuState = {
+  isOpen: false,
+  x: 0,
+  y: 0,
+  promptId: null,
+  promptName: null,
+};
 
 const initialState: LauncherState = {
   mode: 'search',
@@ -42,6 +54,7 @@ const initialState: LauncherState = {
   promotedPrompt: null,
   riderText: '',
   isLoading: false,
+  contextMenu: initialContextMenu,
 };
 
 export const useLauncherStore = create<LauncherStore>((set, get) => ({
@@ -139,5 +152,21 @@ export const useLauncherStore = create<LauncherStore>((set, get) => ({
   getSelectedResult: () => {
     const { results, selectedIndex } = get();
     return results[selectedIndex] ?? null;
+  },
+
+  openContextMenu: (x, y, promptId, promptName) => {
+    set({
+      contextMenu: {
+        isOpen: true,
+        x,
+        y,
+        promptId: promptId ?? null,
+        promptName: promptName ?? null,
+      },
+    });
+  },
+
+  closeContextMenu: () => {
+    set({ contextMenu: initialContextMenu });
   },
 }));

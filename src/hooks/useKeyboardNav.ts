@@ -80,6 +80,59 @@ export function useKeyboardNav() {
     }
   }, []);
 
+  const copyAsFile = useCallback(async () => {
+    // Get fresh state directly from store
+    const state = useLauncherStore.getState();
+    const { mode: currentMode, results: currentResults, selectedIndex: currentIndex, promotedPrompt: currentPromoted, riderText: currentRider } = state;
+
+    console.log('CopyAsFile called - mode:', currentMode, 'results:', currentResults.length, 'index:', currentIndex);
+
+    try {
+      let name = '';
+      let content = '';
+
+      if (currentMode === 'promoted' && currentPromoted) {
+        // Get the full prompt content
+        const prompt = await invoke<Prompt>('get_prompt', {
+          id: currentPromoted.id,
+        });
+        name = currentPromoted.name;
+        content = currentRider
+          ? `${prompt.content} ${currentRider}`
+          : prompt.content;
+
+        // Record usage
+        await invoke('record_usage', { id: currentPromoted.id });
+      } else {
+        const selected = currentResults[currentIndex];
+        if (!selected) {
+          console.error('No prompt selected, selectedIndex:', currentIndex, 'results:', currentResults.length);
+          return;
+        }
+
+        console.log('Getting prompt:', selected.prompt.id);
+
+        // Get the full prompt content
+        const prompt = await invoke<Prompt>('get_prompt', {
+          id: selected.prompt.id,
+        });
+
+        console.log('Got prompt content, length:', prompt.content.length);
+        name = selected.prompt.name;
+        content = prompt.content;
+
+        // Record usage
+        await invoke('record_usage', { id: selected.prompt.id });
+      }
+
+      console.log('Copying as markdown file:', name);
+      await invoke('copy_as_markdown_file', { name, content });
+      console.log('Copied as file successfully');
+    } catch (error) {
+      console.error('Failed to copy as file:', error);
+    }
+  }, []);
+
   // Register paste handler for click events
   useEffect(() => {
     setExecuteHandler(paste);
@@ -110,6 +163,13 @@ export function useKeyboardNav() {
         getCurrentScreenBounds().then((screenBounds) => {
           invoke('open_editor_window', { promptId: null, screenBounds, view: 'settings' });
         });
+        return;
+      }
+
+      // Option+Enter - Copy as markdown file
+      if (e.altKey && e.key === 'Enter') {
+        e.preventDefault();
+        copyAsFile();
         return;
       }
 
@@ -171,6 +231,7 @@ export function useKeyboardNav() {
     selectPrevious,
     promoteSelected,
     paste,
+    copyAsFile,
     dismiss,
   ]);
 }
