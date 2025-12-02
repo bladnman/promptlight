@@ -34,6 +34,7 @@ export function PromptListItem({ prompt, isSelected, onClick, onContextMenu }: P
       onContextMenu={onContextMenu}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      data-testid="prompt-list-item"
     >
       <span className={styles.icon} style={{ color: colorValue }}>
         <Icon name={icon} size={16} />

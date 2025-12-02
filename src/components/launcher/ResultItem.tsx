@@ -52,12 +52,13 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
       onContextMenu={handleContextMenu}
       role="option"
       aria-selected={isSelected}
+      data-testid="result-item"
     >
       <span className={styles.icon} style={{ color: colorValue }}>
         <Icon name={icon} size={18} />
       </span>
       <div className={styles.content}>
-        <div className={styles.name}>{prompt.name}</div>
+        <div className={styles.name} data-testid="result-name">{prompt.name}</div>
         {prompt.description && (
           <div className={styles.description}>{prompt.description}</div>
         )}

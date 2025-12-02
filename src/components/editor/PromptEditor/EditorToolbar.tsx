@@ -130,7 +130,7 @@ export function EditorToolbar() {
   const color = (editedPrompt.color || DEFAULT_PROMPT_COLOR) as PromptColorName;
 
   return (
-    <header className={styles.toolbar}>
+    <header className={styles.toolbar} data-testid="editor-toolbar">
       <div className={styles.left}>
         <IconColorPicker
           icon={icon}
@@ -157,6 +157,7 @@ export function EditorToolbar() {
             value={editedPrompt.folder}
             onChange={handleFolderChange}
             className={styles.folderSelect}
+            data-testid="folder-select"
           >
             {dropdownFolders.map((folder) => (
               <option key={folder} value={folder}>
@@ -175,11 +176,13 @@ export function EditorToolbar() {
               icon={copyStatus === 'copied' ? Check : Copy}
               onClick={handleCopy}
               title="Copy to clipboard"
+              data-testid="copy-button"
             />
             <IconButton
               icon={ClipboardPaste}
               onClick={handlePaste}
               title="Paste to target app and close"
+              data-testid="paste-button"
             />
           </div>
         )}
@@ -193,11 +196,13 @@ export function EditorToolbar() {
                 onClick={handleDelete}
                 variant="danger"
                 title="Confirm delete"
+                data-testid="confirm-delete"
               />
               <IconButton
                 icon={X}
                 onClick={() => setShowDeleteConfirm(false)}
                 title="Cancel"
+                data-testid="cancel-delete"
               />
             </div>
           ) : (
@@ -206,6 +211,7 @@ export function EditorToolbar() {
               onClick={() => setShowDeleteConfirm(true)}
               variant="danger"
               title="Delete prompt"
+              data-testid="delete-button"
             />
           )
         )}

@@ -56,7 +56,7 @@ export function EditorWindow() {
   }, [loadPrompts, loadPrompt, createNew, setSidebarCollapsed, setView]);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-testid="editor-window">
       <ModeToggle />
       <div className={styles.content}>
         {currentView === 'prompts' ? (

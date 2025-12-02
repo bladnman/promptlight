@@ -53,6 +53,7 @@ export function SearchInput() {
         defaultValue={searchFilter}
         onChange={handleChange}
         className={styles.input}
+        data-testid="sidebar-search"
       />
       {searchFilter && (
         <button

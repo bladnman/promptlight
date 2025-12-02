@@ -69,3 +69,12 @@ export function getMockBackend(): MockAdapter {
   }
   return backend as MockAdapter;
 }
+
+/**
+ * Expose mockBackend to window for E2E test access via Playwright.
+ * This allows tests to seed data and verify actions.
+ */
+if (typeof window !== 'undefined' && backend instanceof MockAdapter) {
+  // Extend window type for E2E tests
+  (window as unknown as { __mockBackend: MockAdapter }).__mockBackend = mockBackend;
+}

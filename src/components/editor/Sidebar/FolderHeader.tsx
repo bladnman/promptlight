@@ -33,6 +33,7 @@ export function FolderHeader({
       onClick={onToggle}
       onContextMenu={onContextMenu}
       aria-expanded={!isCollapsed}
+      data-testid="folder-item"
     >
       <span className={`${styles.chevron} ${isCollapsed ? styles.collapsed : ''}`}>
         {isCollapsed ? <ChevronRight size={14} /> : <ChevronDown size={14} />}

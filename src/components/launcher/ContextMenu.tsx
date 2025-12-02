@@ -122,6 +122,7 @@ export function ContextMenu({ x, y, onClose, promptId, promptName, promptContent
       ref={menuRef}
       className={styles.menu}
       style={{ left: x, top: y }}
+      data-testid="context-menu"
     >
       {promptItems.length > 0 && (
         <>

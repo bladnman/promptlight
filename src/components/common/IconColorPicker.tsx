@@ -79,6 +79,7 @@ export function IconColorPicker({
         onClick={() => setIsOpen(!isOpen)}
         style={{ color: currentColor }}
         title="Change icon and color"
+        data-testid="icon-picker"
       >
         <Icon name={icon} size={20} />
       </button>
@@ -146,6 +147,7 @@ export function IconColorPicker({
                     onClick={() => handleIconSelect(iconName)}
                     title={iconName}
                     style={{ color: currentColor }}
+                    data-testid={`icon-option-${iconName}`}
                   >
                     <Icon name={iconName} size={20} />
                   </button>
@@ -168,6 +170,7 @@ export function IconColorPicker({
                     onClick={() => handleColorSelect(colorName)}
                     title={colorName}
                     style={{ backgroundColor: colorValue }}
+                    data-testid={`color-option-${colorName}`}
                   />
                 )
               )}

@@ -8,7 +8,7 @@ export function PromptEditor() {
 
   if (isLoading) {
     return (
-      <main className={styles.editor}>
+      <main className={styles.editor} data-testid="editor">
         <div className={styles.loading}>Loading...</div>
       </main>
     );
@@ -16,7 +16,7 @@ export function PromptEditor() {
 
   if (!editedPrompt) {
     return (
-      <main className={styles.editor}>
+      <main className={styles.editor} data-testid="editor">
         <div className={styles.empty}>
           <p>Select a prompt or create a new one</p>
         </div>
@@ -25,7 +25,7 @@ export function PromptEditor() {
   }
 
   return (
-    <main className={styles.editor}>
+    <main className={styles.editor} data-testid="editor">
       {error && (
         <div className={styles.error}>
           <span>{error}</span>

@@ -51,12 +51,13 @@ export function SettingsView() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-testid="settings-view">
       <nav className={styles.nav}>
         <h2 className={styles.navTitle}>Settings</h2>
         <button
           className={`${styles.navItem} ${activeSection === 'general' ? styles.active : ''}`}
           onClick={() => setActiveSection('general')}
+          data-testid="settings-tab-general"
         >
           <Settings size={16} />
           General
@@ -64,6 +65,7 @@ export function SettingsView() {
         <button
           className={`${styles.navItem} ${activeSection === 'appearance' ? styles.active : ''}`}
           onClick={() => setActiveSection('appearance')}
+          data-testid="settings-tab-appearance"
         >
           <Palette size={16} />
           Appearance
@@ -71,6 +73,7 @@ export function SettingsView() {
         <button
           className={`${styles.navItem} ${activeSection === 'sync' ? styles.active : ''}`}
           onClick={() => setActiveSection('sync')}
+          data-testid="settings-tab-sync"
         >
           {user ? <Cloud size={16} /> : <CloudOff size={16} />}
           Sync
