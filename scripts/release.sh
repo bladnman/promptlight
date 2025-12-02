@@ -167,13 +167,14 @@ sed -i.bak 's/^version = "[^"]*"/version = "'"$NEW_VERSION"'"/' src-tauri/Cargo.
 sed -i.bak 's/"version": "[^"]*"/"version": "'"$NEW_VERSION"'"/' src-tauri/tauri.conf.json
 rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
 
-# Build release
+# Build release (universal binary for both Intel and Apple Silicon)
 echo ""
-echo "Building release..."
-npm run tauri build
+echo "Building universal release (aarch64 + x86_64)..."
+npm run tauri build -- --target universal-apple-darwin
 
 # Sign with certificate
-BUNDLE_PATH="src-tauri/target/release/bundle/macos/Promptlight.app"
+# Universal builds go to universal-apple-darwin directory
+BUNDLE_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app"
 ENTITLEMENTS="src-tauri/entitlements.plist"
 SIGN_IDENTITY="PromptLight Dev"
 
@@ -195,13 +196,14 @@ rm -rf /Applications/Promptlight.app
 cp -R "$BUNDLE_PATH" /Applications/
 echo -e "${GREEN}Installed to /Applications/Promptlight.app${NC}"
 
-# Find DMG
-DMG_PATH=$(find src-tauri/target/release/bundle/dmg -name "*.dmg" | head -1)
+# Find DMG (universal builds go to universal-apple-darwin directory)
+DMG_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" | head -1)
 if [[ -z "$DMG_PATH" ]]; then
-    echo -e "${RED}Error: No DMG found in src-tauri/target/release/bundle/dmg${NC}"
+    echo -e "${RED}Error: No DMG found in src-tauri/target/universal-apple-darwin/release/bundle/dmg${NC}"
     exit 1
 fi
 echo "DMG: $DMG_PATH"
+DMG_FILENAME=$(basename "$DMG_PATH")
 
 # Commit version bump
 echo ""
@@ -226,14 +228,23 @@ gh release create "$NEW_TAG" \
 
 ### Installation
 
-**macOS:**
-- Download the DMG file below
+**macOS (Universal - works on both Intel and Apple Silicon):**
+- Download \`$DMG_FILENAME\`
 - Open the DMG and drag PromptLight to Applications
-- On first launch, right-click and select 'Open' to bypass Gatekeeper
 
-**First-time setup:**
-- Grant Accessibility permission in System Settings > Privacy & Security > Accessibility
-- This enables the paste-into-app feature
+> **macOS Gatekeeper:** Since this app is not signed with an Apple Developer certificate, macOS may show a warning. To open the app:
+> 1. Try to open PromptLight - you'll see a warning that it can't be opened
+> 2. Go to **System Settings → Privacy & Security**
+> 3. Scroll down and click **\"Open Anyway\"** next to the PromptLight message
+> 4. Click **Open** in the confirmation dialog
+
+**First-time Accessibility Setup:**
+For the paste-into-previous-app feature to work, you need to grant Accessibility permission:
+1. Open **System Settings → Privacy & Security → Accessibility**
+2. Click **+** and add PromptLight from Applications
+3. Ensure the toggle is **ON**
+
+This permission persists across app updates.
 
 ### Changelog
 See commit history for changes." \
