@@ -1,4 +1,8 @@
 import { test, expect } from '@playwright/test';
+import os from 'os';
+
+// Use Meta on macOS, Control on Linux/Windows for keyboard shortcuts
+const modifier = os.platform() === 'darwin' ? 'Meta' : 'Control';
 
 test.describe('ink-mde Whitespace Preservation', () => {
   test.beforeEach(async ({ page }) => {
@@ -132,7 +136,7 @@ test.describe('ink-mde Whitespace Preservation', () => {
     expect(content).toContain('Normal line\\n    Indented line');
   });
 
-  test('should handle Cmd+B for bold formatting', async ({ page }) => {
+  test('should handle Cmd/Ctrl+B for bold formatting', async ({ page }) => {
     const editor = page.locator('.ink-mde .cm-content');
 
     await editor.click();
@@ -140,11 +144,11 @@ test.describe('ink-mde Whitespace Preservation', () => {
     // Type some text
     await page.keyboard.type('hello');
 
-    // Select 'hello' (Cmd+A to select all since it's the only content)
-    await page.keyboard.press('Meta+a');
+    // Select 'hello' (Cmd/Ctrl+A to select all since it's the only content)
+    await page.keyboard.press(`${modifier}+a`);
 
     // Apply bold
-    await page.keyboard.press('Meta+b');
+    await page.keyboard.press(`${modifier}+b`);
 
     // Check that markdown bold syntax was added
     const jsonOutput = page.locator('pre').nth(1);
@@ -153,7 +157,7 @@ test.describe('ink-mde Whitespace Preservation', () => {
     expect(content).toContain('**hello**');
   });
 
-  test('should handle Cmd+I for italic formatting', async ({ page }) => {
+  test('should handle Cmd/Ctrl+I for italic formatting', async ({ page }) => {
     const editor = page.locator('.ink-mde .cm-content');
 
     await editor.click();
@@ -162,10 +166,10 @@ test.describe('ink-mde Whitespace Preservation', () => {
     await page.keyboard.type('world');
 
     // Select all
-    await page.keyboard.press('Meta+a');
+    await page.keyboard.press(`${modifier}+a`);
 
     // Apply italic
-    await page.keyboard.press('Meta+i');
+    await page.keyboard.press(`${modifier}+i`);
 
     // Check that markdown italic syntax was added
     const jsonOutput = page.locator('pre').nth(1);
