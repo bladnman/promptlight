@@ -1,11 +1,12 @@
 .item {
+  position: relative;
   width: 100%;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   text-align: left;
   background: none;
-  border: none;
+  border: 1px solid transparent;
   padding: var(--space-sm) var(--space-md);
   margin-bottom: var(--space-xs);
   border-radius: var(--radius-md);
@@ -51,11 +52,20 @@
   flex-shrink: 0;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+  transition: opacity var(--transition-fast);
 }
 
-/* More actions button - appears on hover */
+/* Hide use count on hover */
+.item:hover .useCount {
+  opacity: 0;
+}
+
+/* More actions button - hidden by default, shown on hover */
 .moreButton {
-  flex-shrink: 0;
+  position: absolute;
+  right: var(--space-sm);
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,7 +77,12 @@
   border-radius: var(--radius-sm);
   color: var(--text-muted);
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  opacity: 0;
+  transition: background var(--transition-fast), color var(--transition-fast), opacity var(--transition-fast);
+}
+
+.item:hover .moreButton {
+  opacity: 1;
 }
 
 .moreButton:hover {

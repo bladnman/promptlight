@@ -102,7 +102,6 @@ export function SettingsView() {
         {activeSection === 'sync' && (
           <SyncSection
             enabled={settings.sync.enabled}
-            lastSync={settings.sync.lastSync}
             onEnabledChange={(value) => updateSyncSettings({ enabled: value })}
             user={user}
             isAuthLoading={isAuthLoading}
@@ -276,7 +275,6 @@ function AppearanceSection({
 
 interface SyncSectionProps {
   enabled: boolean;
-  lastSync: string | null;
   onEnabledChange: (value: boolean) => void;
   user: { uid: string; email: string | null; displayName: string | null; photoUrl: string | null } | null;
   isAuthLoading: boolean;
@@ -290,7 +288,6 @@ interface SyncSectionProps {
 
 function SyncSection({
   enabled,
-  lastSync,
   onEnabledChange,
   user,
   isAuthLoading,
@@ -376,12 +373,6 @@ function SyncSection({
 
           {syncError && (
             <div className={styles.errorText}>Sync error: {syncError}</div>
-          )}
-
-          {lastSync && !syncError && (
-            <div className={styles.lastSync}>
-              Last synced: {new Date(lastSync).toLocaleString()}
-            </div>
           )}
         </>
       )}
