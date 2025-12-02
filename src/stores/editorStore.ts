@@ -3,13 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { emit } from '@tauri-apps/api/event';
 import type { Prompt, PromptMetadata, PromptIndex, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
+import { getLastColorFromStorage } from '../hooks/useIconPickerPreferences';
 import { useLauncherCacheStore } from './launcherCacheStore';
-
-// Extract trailing whitespace from content (newlines at end)
-function getTrailingWhitespace(str: string): string {
-  const match = str.match(/(\s*)$/);
-  return match ? match[1] : '';
-}
 
 /** View type for the editor window */
 export type EditorView = 'prompts' | 'settings';
@@ -29,8 +24,6 @@ interface EditorState {
   sidebarCollapsed: boolean;
   /** Currently editing prompt data */
   editedPrompt: Prompt | null;
-  /** Trailing whitespace from original content (tiptap strips this) */
-  originalTrailingWhitespace: string;
   /** Whether there are unsaved changes */
   isDirty: boolean;
   /** Save in progress */
@@ -112,7 +105,6 @@ const initialState: EditorState = {
   selectedPromptId: null,
   sidebarCollapsed: false,
   editedPrompt: null,
-  originalTrailingWhitespace: '',
   isDirty: false,
   isSaving: false,
   isLoading: false,
@@ -161,12 +153,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const prompt = await invoke<Prompt>('get_prompt', { id });
-      // Capture trailing whitespace before tiptap strips it
-      const trailingWhitespace = getTrailingWhitespace(prompt.content);
       set({
         selectedPromptId: id,
         editedPrompt: prompt,
-        originalTrailingWhitespace: trailingWhitespace,
         isDirty: false,
         isLoading: false,
         autoSaveStatus: 'idle',
@@ -182,13 +171,14 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   createNew: () => {
     const { folders } = get();
+    const lastColor = getLastColorFromStorage();
     set({
       selectedPromptId: null,
       editedPrompt: {
         ...emptyPrompt,
         folder: folders[0] || 'uncategorized',
+        color: lastColor,
       },
-      originalTrailingWhitespace: '',
       isDirty: false,
       autoSaveStatus: 'idle',
       error: null,
@@ -207,7 +197,7 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
   },
 
   save: async () => {
-    const { editedPrompt, originalTrailingWhitespace } = get();
+    const { editedPrompt } = get();
     if (!editedPrompt) return null;
 
     if (!editedPrompt.name.trim()) {
@@ -218,24 +208,9 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ isSaving: true, autoSaveStatus: 'saving', error: null });
 
     try {
-      // Ensure content ends with at least one newline for better paste UX
-      // (tiptap strips trailing whitespace, but prompts benefit from ending with a newline
-      // so the user can type immediately after pasting)
-      let content = editedPrompt.content;
-      if (!content.endsWith('\n')) {
-        content = content + '\n';
-      }
-      // Restore any additional trailing whitespace from original
-      if (originalTrailingWhitespace && originalTrailingWhitespace !== '\n') {
-        content = content.trimEnd() + originalTrailingWhitespace;
-      }
-      const promptToSave = {
-        ...editedPrompt,
-        content,
-      };
-
+      // ink-mde preserves whitespace natively, so save content as-is
       const saved = await invoke<PromptMetadata>('save_prompt', {
-        prompt: promptToSave,
+        prompt: editedPrompt,
       });
 
       // Update the edited prompt with saved metadata

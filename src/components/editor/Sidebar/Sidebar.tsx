@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { Plus, PanelLeftClose, Menu } from 'lucide-react';
 import { useEditorStore } from '../../../stores/editorStore';
+import { useDerivedFolders } from '../../../hooks/useDerivedFolders';
 import { SearchInput } from './SearchInput';
 import { FolderSection } from './FolderSection';
 import { NewFolderInput } from './NewFolderInput';
@@ -16,7 +17,6 @@ interface ContextMenuState {
 export function Sidebar() {
   const {
     prompts,
-    folders,
     selectedPromptId,
     sidebarCollapsed,
     searchFilter,
@@ -32,6 +32,9 @@ export function Sidebar() {
     cancelEditingFolder,
     deleteFolder,
   } = useEditorStore();
+
+  // Derive visible folders from prompts (hides empty folders)
+  const folders = useDerivedFolders(prompts);
 
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -161,7 +164,7 @@ export function Sidebar() {
 
         <div className={styles.list}>
           {folders.length === 0 ? (
-            <div className={styles.empty}>No folders yet</div>
+            <div className={styles.empty}>No prompts yet</div>
           ) : (
             folders.map((folder) => (
               <FolderSection

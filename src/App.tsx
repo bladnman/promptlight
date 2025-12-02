@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { LauncherWindow } from './components/launcher';
 import { EditorWindow } from './components/editor';
+import { MarkdownEditorTest } from './components/editor/PromptEditor/MarkdownEditor/MarkdownEditorTest';
 import { useLauncher, useUIScale } from './hooks';
 import { useSettingsStore } from './stores/settingsStore';
 
-type WindowType = 'launcher' | 'editor' | null;
+type WindowType = 'launcher' | 'editor' | 'test' | null;
 
 function App() {
   const [windowType, setWindowType] = useState<WindowType>(null);
@@ -22,7 +23,13 @@ function App() {
     // Detect window type from URL parameters
     const params = new URLSearchParams(window.location.search);
     const windowParam = params.get('window');
-    setWindowType(windowParam === 'editor' ? 'editor' : 'launcher');
+    if (windowParam === 'editor') {
+      setWindowType('editor');
+    } else if (windowParam === 'test') {
+      setWindowType('test');
+    } else {
+      setWindowType('launcher');
+    }
   }, []);
 
   // Show nothing while detecting window type
@@ -33,6 +40,10 @@ function App() {
   // Route to appropriate window
   if (windowType === 'editor') {
     return <EditorWindow />;
+  }
+
+  if (windowType === 'test') {
+    return <MarkdownEditorTest />;
   }
 
   return <LauncherApp />;

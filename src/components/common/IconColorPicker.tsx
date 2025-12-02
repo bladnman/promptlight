@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
-  PROMPT_ICONS,
   PROMPT_COLORS,
   type PromptIconName,
   type PromptColorName,
 } from '../../config/constants';
+import { searchIcons } from '../../config/iconData';
+import { useIconPickerPreferences } from '../../hooks/useIconPickerPreferences';
 import { Icon } from './Icon';
 import styles from './IconColorPicker.module.css';
 
@@ -23,13 +24,23 @@ export function IconColorPicker({
 }: IconColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'icon' | 'color'>('icon');
+  const [searchQuery, setSearchQuery] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const { preferences, addRecentIcon, setLastColor } = useIconPickerPreferences();
+
+  // Filter icons based on search query
+  const filteredIcons = useMemo(() => {
+    return searchIcons(searchQuery) as PromptIconName[];
+  }, [searchQuery]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        setSearchQuery('');
       }
     };
 
@@ -39,7 +50,26 @@ export function IconColorPicker({
     }
   }, [isOpen]);
 
+  // Focus search input when opening icon tab
+  useEffect(() => {
+    if (isOpen && activeTab === 'icon' && searchInputRef.current) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+  }, [isOpen, activeTab]);
+
+  const handleIconSelect = (iconName: PromptIconName) => {
+    onIconChange(iconName);
+    addRecentIcon(iconName);
+  };
+
+  const handleColorSelect = (colorName: PromptColorName) => {
+    onColorChange(colorName);
+    setLastColor(colorName);
+  };
+
   const currentColor = PROMPT_COLORS[color];
+  const { recentIcons } = preferences;
 
   return (
     <div className={styles.container} ref={containerRef}>
@@ -73,22 +103,57 @@ export function IconColorPicker({
           </div>
 
           {activeTab === 'icon' && (
-            <div className={styles.iconGrid}>
-              {PROMPT_ICONS.map((iconName) => (
-                <button
-                  key={iconName}
-                  type="button"
-                  className={`${styles.iconOption} ${iconName === icon ? styles.selected : ''}`}
-                  onClick={() => {
-                    onIconChange(iconName);
-                    setIsOpen(false);
-                  }}
-                  title={iconName}
-                  style={{ color: currentColor }}
-                >
-                  <Icon name={iconName} size={18} />
-                </button>
-              ))}
+            <div className={styles.iconPanel}>
+              {/* Sticky header with recent icons and search */}
+              <div className={styles.stickyHeader}>
+                {recentIcons.length > 0 && (
+                  <div className={styles.recentSection}>
+                    <span className={styles.recentLabel}>Recent</span>
+                    <div className={styles.recentGrid}>
+                      {recentIcons.map((iconName) => (
+                        <button
+                          key={iconName}
+                          type="button"
+                          className={`${styles.iconOption} ${iconName === icon ? styles.selected : ''}`}
+                          onClick={() => handleIconSelect(iconName as PromptIconName)}
+                          title={iconName}
+                          style={{ color: currentColor }}
+                        >
+                          <Icon name={iconName as PromptIconName} size={20} />
+                        </button>
+                      ))}
+                    </div>
+                    <div className={styles.separator} />
+                  </div>
+                )}
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  className={styles.searchInput}
+                  placeholder="Search icons..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              {/* Scrollable icon grid */}
+              <div className={styles.iconGrid}>
+                {filteredIcons.map((iconName) => (
+                  <button
+                    key={iconName}
+                    type="button"
+                    className={`${styles.iconOption} ${iconName === icon ? styles.selected : ''}`}
+                    onClick={() => handleIconSelect(iconName)}
+                    title={iconName}
+                    style={{ color: currentColor }}
+                  >
+                    <Icon name={iconName} size={20} />
+                  </button>
+                ))}
+                {filteredIcons.length === 0 && (
+                  <div className={styles.noResults}>No icons found</div>
+                )}
+              </div>
             </div>
           )}
 
@@ -100,10 +165,7 @@ export function IconColorPicker({
                     key={colorName}
                     type="button"
                     className={`${styles.colorOption} ${colorName === color ? styles.selected : ''}`}
-                    onClick={() => {
-                      onColorChange(colorName);
-                      setIsOpen(false);
-                    }}
+                    onClick={() => handleColorSelect(colorName)}
                     title={colorName}
                     style={{ backgroundColor: colorValue }}
                   />
