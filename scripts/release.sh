@@ -167,7 +167,7 @@ sed -i.bak 's/^version = "[^"]*"/version = "'"$NEW_VERSION"'"/' src-tauri/Cargo.
 sed -i.bak 's/"version": "[^"]*"/"version": "'"$NEW_VERSION"'"/' src-tauri/tauri.conf.json
 rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
 
-# Build all three targets
+# Build universal binary
 ENTITLEMENTS="src-tauri/entitlements.plist"
 SIGN_IDENTITY="PromptLight Dev"
 
@@ -184,24 +184,14 @@ sign_bundle() {
 }
 
 echo ""
-echo "Building Apple Silicon (aarch64)..."
-npm run tauri build -- --target aarch64-apple-darwin
-
-echo ""
-echo "Building Intel (x86_64)..."
-npm run tauri build -- --target x86_64-apple-darwin
-
-echo ""
-echo "Building Universal (aarch64 + x86_64)..."
+echo "Building Universal binary (works on all Macs)..."
 npm run tauri build -- --target universal-apple-darwin
 
-# Sign all bundles
+# Sign the bundle
 echo ""
-echo "Signing bundles..."
-sign_bundle "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Promptlight.app"
-sign_bundle "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Promptlight.app"
+echo "Signing bundle..."
 sign_bundle "src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app"
-echo "All bundles signed"
+echo "Bundle signed"
 
 # Install universal build locally
 echo ""
@@ -212,16 +202,11 @@ rm -rf /Applications/Promptlight.app
 cp -R "src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app" /Applications/
 echo -e "${GREEN}Installed to /Applications/Promptlight.app${NC}"
 
-# Find all DMGs
-DMG_AARCH64=$(find src-tauri/target/aarch64-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
-DMG_X64=$(find src-tauri/target/x86_64-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
+# Find the DMG
 DMG_UNIVERSAL=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
 
 echo ""
-echo "DMGs built:"
-[[ -n "$DMG_AARCH64" ]] && echo "  - $DMG_AARCH64"
-[[ -n "$DMG_X64" ]] && echo "  - $DMG_X64"
-[[ -n "$DMG_UNIVERSAL" ]] && echo "  - $DMG_UNIVERSAL"
+echo "DMG built: $DMG_UNIVERSAL"
 
 # Commit version bump (if there are changes)
 echo ""
@@ -241,15 +226,9 @@ git tag "$NEW_TAG"
 echo "Pushing to GitHub..."
 git push origin "$CURRENT_BRANCH" --tags
 
-# Create GitHub release with all DMGs
+# Create GitHub release
 echo ""
 echo "Creating GitHub release..."
-
-# Build list of DMG files to upload
-DMG_FILES=""
-[[ -n "$DMG_UNIVERSAL" ]] && DMG_FILES="$DMG_FILES $DMG_UNIVERSAL"
-[[ -n "$DMG_AARCH64" ]] && DMG_FILES="$DMG_FILES $DMG_AARCH64"
-[[ -n "$DMG_X64" ]] && DMG_FILES="$DMG_FILES $DMG_X64"
 
 gh release create "$NEW_TAG" \
     --title "PromptLight v$NEW_VERSION" \
@@ -257,15 +236,9 @@ gh release create "$NEW_TAG" \
 
 ### Installation
 
-**macOS:**
-- Download \`PromptLight_${NEW_VERSION}_universal.dmg\` (recommended - works on all Macs)
+**macOS (Intel & Apple Silicon):**
+- Download \`PromptLight_${NEW_VERSION}_universal.dmg\`
 - Open the DMG and drag PromptLight to Applications
-
-**macOS (Apple Silicon):**
-- Download \`PromptLight_${NEW_VERSION}_aarch64.dmg\`
-
-**macOS (Intel):**
-- Download \`PromptLight_${NEW_VERSION}_x64.dmg\`
 
 > **macOS Gatekeeper:** Since this app is not signed with an Apple Developer certificate, macOS may show a warning. To open the app:
 > 1. Try to open PromptLight - you'll see a warning that it can't be opened
@@ -283,7 +256,7 @@ This permission persists across app updates.
 
 ### Changelog
 See commit history for changes." \
-    $DMG_FILES
+    "$DMG_UNIVERSAL"
 
 echo ""
 echo -e "${GREEN}Release v${NEW_VERSION} complete!${NC}"
