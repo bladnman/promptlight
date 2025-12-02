@@ -43,8 +43,8 @@ npm run dev:vite           # Start Vite only (frontend, no Tauri)
 npm run build              # TypeScript check + Vite build (frontend only)
 npm run install:local      # Build release and install to /Applications (macOS)
 
-# Testing
-npm run test               # Run all tests once
+# Unit Testing
+npm run test               # Run all unit tests once
 npm run test:watch         # Run tests in watch mode
 npm run test:coverage      # Run tests with coverage report
 
@@ -53,6 +53,11 @@ npx vitest run src/__tests__/stores/editorStore.test.ts
 
 # Run tests matching a pattern
 npx vitest run -t "should load prompts"
+
+# E2E Testing (Playwright)
+npx playwright test        # Run all E2E tests
+npx playwright test --headed  # Run with browser visible
+npx playwright test src/__tests__/e2e/launcher.spec.ts  # Run specific file
 
 # Linting
 npm run lint               # Run ESLint
@@ -222,15 +227,132 @@ src/__tests__/
 ├── stores/               # Store tests (high coverage)
 │   ├── editorStore.test.ts
 │   ├── launcherStore.test.ts
-│   ├── launcherCacheStore.test.ts
 │   ├── settingsStore.test.ts
 │   └── authStore.test.ts
-└── components/           # Component tests
-    ├── IconButton.test.tsx
-    └── InlineEdit.test.tsx
+├── components/           # Component tests
+│   ├── IconButton.test.tsx
+│   └── InlineEdit.test.tsx
+└── e2e/                  # End-to-end tests (Playwright)
+    ├── fixtures/         # Test data factories
+    ├── pages/            # Page object models
+    ├── launcher.spec.ts  # Launcher window tests
+    ├── editor.spec.ts    # Editor window tests
+    └── settings.spec.ts  # Settings view tests
 ```
 
-**Test file naming**: `*.test.ts` or `*.test.tsx` mirroring source structure
+**Test file naming**: `*.test.ts` or `*.test.tsx` for unit tests, `*.spec.ts` for E2E tests
+
+## E2E Testing
+
+E2E tests use Playwright and run in browser-only mode (no Tauri backend required).
+
+### Running E2E Tests
+
+```bash
+# Run all E2E tests
+npx playwright test
+
+# Run specific test file
+npx playwright test src/__tests__/e2e/launcher.spec.ts
+
+# Run with UI (headed mode)
+npx playwright test --headed
+
+# Debug mode
+npx playwright test --debug
+```
+
+### E2E Architecture
+
+The E2E tests use a **Backend Adapter Pattern** that allows switching between real Tauri backend and a mock in-memory backend:
+
+```
+services/backend/
+├── index.ts           # Exports unified `backend` instance
+├── types.ts           # BackendAdapter interface
+├── TauriAdapter.ts    # Real Tauri backend (invoke calls)
+└── MockAdapter.ts     # In-memory mock for browser testing
+```
+
+**How it works**:
+- URL parameter `?mock=true` enables mock backend
+- MockAdapter provides full CRUD for prompts, action tracking, and data seeding
+- Tests seed data via `page.evaluate()` and verify actions via action history
+
+### Page Object Pattern
+
+Each window has a corresponding page object in `src/__tests__/e2e/pages/`:
+
+```typescript
+// Example: LauncherPage.ts
+export class LauncherPage {
+  readonly page: Page;
+  readonly searchInput: Locator;
+  readonly resultItems: Locator;
+
+  async goto() {
+    await this.page.goto('/?mock=true');
+  }
+
+  async seedPrompts(prompts: Prompt[]) {
+    await this.page.evaluate((data) => {
+      window.__mockBackend.seedData(data);
+    }, prompts);
+  }
+
+  async search(query: string) { ... }
+}
+```
+
+### Test Data Factories
+
+Located in `src/__tests__/e2e/fixtures/test-data.ts`:
+
+```typescript
+// Create a single test prompt
+const prompt = createTestPrompt({ name: 'My Prompt' });
+
+// Create a scenario with multiple prompts
+const prompts = createTestScenario();
+```
+
+### Writing E2E Tests
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { LauncherPage } from './pages/LauncherPage';
+import { createTestScenario } from './fixtures/test-data';
+
+test.describe('Launcher Window', () => {
+  let launcher: LauncherPage;
+
+  test.beforeEach(async ({ page }) => {
+    launcher = new LauncherPage(page);
+    await launcher.goto();
+  });
+
+  test('should filter results based on search query', async () => {
+    const prompts = createTestScenario();
+    await launcher.seedPrompts(prompts);
+    await launcher.search('bug');
+
+    const count = await launcher.getResultCount();
+    expect(count).toBe(1);
+  });
+});
+```
+
+### Action Verification
+
+The MockAdapter tracks all backend actions for test verification:
+
+```typescript
+await launcher.clearActionHistory();
+await launcher.pressEnter();
+
+const actions = await launcher.getActionHistory();
+expect(actions.some(a => a.type === 'paste')).toBe(true);
+```
 
 ## File Organization
 

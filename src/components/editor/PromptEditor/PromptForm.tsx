@@ -20,16 +20,18 @@ export function PromptForm() {
           placeholder="Untitled prompt"
           variant="title"
           autoFocus={isNewPrompt}
+          data-testid="prompt-title"
         />
         <InlineEdit
           value={editedPrompt.description}
           onChange={(value) => updateField('description', value)}
           placeholder="Add a description..."
           variant="body"
+          data-testid="prompt-description"
         />
       </div>
 
-      <div className={styles.contentField}>
+      <div className={styles.contentField} data-testid="prompt-content">
         <MarkdownEditor
           value={editedPrompt.content}
           onChange={(content) => updateField('content', content)}

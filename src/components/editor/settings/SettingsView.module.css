@@ -213,12 +213,6 @@
   margin: var(--space-sm) 0 0 0;
 }
 
-.lastSync {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  margin-top: var(--space-md);
-}
-
 /* Account Card */
 .accountCard {
   display: flex;

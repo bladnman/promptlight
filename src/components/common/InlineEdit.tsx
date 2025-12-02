@@ -10,6 +10,8 @@ interface InlineEditProps {
   className?: string;
   /** Start in editing mode with focus */
   autoFocus?: boolean;
+  /** Test ID for E2E tests */
+  'data-testid'?: string;
 }
 
 export function InlineEdit({
@@ -20,6 +22,7 @@ export function InlineEdit({
   onBlur,
   className,
   autoFocus = false,
+  'data-testid': testId,
 }: InlineEditProps) {
   const [isEditing, setIsEditing] = useState(autoFocus);
   const [editValue, setEditValue] = useState(value);
@@ -81,6 +84,7 @@ export function InlineEdit({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
+        data-testid={testId}
       />
     );
   }
@@ -97,6 +101,7 @@ export function InlineEdit({
           handleClick();
         }
       }}
+      data-testid={testId}
     >
       {value || placeholder}
     </div>

@@ -111,7 +111,7 @@ export function Sidebar() {
 
   if (sidebarCollapsed) {
     return (
-      <div className={styles.collapsed}>
+      <div className={styles.collapsed} data-testid="sidebar-collapsed">
         <button
           className={styles.expandButton}
           onClick={toggleSidebar}
@@ -125,7 +125,7 @@ export function Sidebar() {
 
   return (
     <>
-      <aside className={styles.sidebar}>
+      <aside className={styles.sidebar} data-testid="sidebar">
         <header className={styles.header}>
           <h2 className={styles.title}>Prompts</h2>
           <div className={styles.actions}>
@@ -133,6 +133,7 @@ export function Sidebar() {
               className={styles.newButton}
               onClick={createNew}
               title="New prompt (Cmd+N)"
+              data-testid="new-prompt-button"
             >
               <Plus size={14} />
               New
@@ -162,7 +163,7 @@ export function Sidebar() {
 
         {isAddingFolder && <NewFolderInput />}
 
-        <div className={styles.list}>
+        <div className={styles.list} data-testid="prompt-list">
           {folders.length === 0 ? (
             <div className={styles.empty}>No prompts yet</div>
           ) : (

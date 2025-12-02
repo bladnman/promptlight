@@ -1,8 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../services/backend';
 import { useLauncherStore } from '../stores/launcherStore';
 import { SEARCH_CONFIG } from '../config/constants';
-import type { SearchResult } from '../types';
 
 /**
  * Hook for debounced search functionality
@@ -18,9 +17,7 @@ export function useSearch() {
       const effectiveQuery = isEmptyQuery ? '' : searchQuery;
 
       try {
-        const results = await invoke<SearchResult[]>('search_prompts', {
-          query: effectiveQuery,
-        });
+        const results = await backend.searchPrompts(effectiveQuery);
         setResults(results);
       } catch (error) {
         console.error('Search error:', error);

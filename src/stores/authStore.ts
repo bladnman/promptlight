@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+import { backend } from '../services/backend';
 import { useEditorStore } from './editorStore';
 
 /** User information from Firebase Auth */
@@ -59,16 +59,11 @@ export const useAuthStore = create<AuthStore>((set) => ({
   checkAuth: async () => {
     set({ isLoading: true, error: null });
     try {
-      const session = await invoke<AuthSession | null>('get_current_auth', {
-        apiKey: FIREBASE_API_KEY,
-      });
+      const session = await backend.getCurrentAuth(FIREBASE_API_KEY);
       if (session) {
         // Set sync auth so SyncService can make authenticated Firestore requests
         // This also auto-syncs from cloud
-        await invoke('set_sync_auth', {
-          userId: session.user.uid,
-          idToken: session.tokens.idToken,
-        });
+        await backend.setSyncAuth(session.user.uid, session.tokens.idToken);
         // Reload prompts after sync completes (cloud data is now downloaded)
         await useEditorStore.getState().loadPrompts();
       }
@@ -85,15 +80,10 @@ export const useAuthStore = create<AuthStore>((set) => ({
   signInWithGoogle: async () => {
     set({ isSigningIn: true, error: null });
     try {
-      const session = await invoke<AuthSession>('sign_in_with_google', {
-        apiKey: FIREBASE_API_KEY,
-      });
+      const session = await backend.signInWithGoogle(FIREBASE_API_KEY);
       // Set sync auth so SyncService can make authenticated Firestore requests
       // This also auto-syncs from cloud
-      await invoke('set_sync_auth', {
-        userId: session.user.uid,
-        idToken: session.tokens.idToken,
-      });
+      await backend.setSyncAuth(session.user.uid, session.tokens.idToken);
       // Reload prompts after sync completes (cloud data is now downloaded)
       await useEditorStore.getState().loadPrompts();
       set({
@@ -112,9 +102,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   signOut: async () => {
     set({ isLoading: true, error: null });
     try {
-      await invoke('sign_out');
+      await backend.signOut();
       // Clear sync auth so SyncService stops making authenticated requests
-      await invoke('clear_sync_auth');
+      await backend.clearSyncAuth();
       set({ user: null, isLoading: false });
     } catch (error) {
       console.error('Sign out failed:', error);

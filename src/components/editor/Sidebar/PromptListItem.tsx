@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import type { PromptMetadata } from '../../../types';
 import { Icon } from '../../common/Icon';
@@ -14,7 +13,6 @@ interface PromptListItemProps {
 }
 
 export function PromptListItem({ prompt, isSelected, onClick, onContextMenu }: PromptListItemProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const icon = prompt.icon || DEFAULT_PROMPT_ICON;
   const color = prompt.color || DEFAULT_PROMPT_COLOR;
   const colorValue = PROMPT_COLORS[color];
@@ -32,15 +30,20 @@ export function PromptListItem({ prompt, isSelected, onClick, onContextMenu }: P
       className={`${styles.item} ${isSelected ? styles.selected : ''}`}
       onClick={onClick}
       onContextMenu={onContextMenu}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      data-testid="prompt-list-item"
     >
       <span className={styles.icon} style={{ color: colorValue }}>
         <Icon name={icon} size={16} />
       </span>
       <span className={styles.name}>{prompt.name}</span>
 
-      {isHovered && !isSelected ? (
+      {/* Use count - hidden on hover */}
+      {prompt.useCount > 0 && !isSelected && (
+        <span className={styles.useCount}>{formatCompactNumber(prompt.useCount)}</span>
+      )}
+
+      {/* More button - visible on hover via CSS */}
+      {!isSelected && (
         <button
           className={styles.moreButton}
           onClick={handleMoreClick}
@@ -48,10 +51,6 @@ export function PromptListItem({ prompt, isSelected, onClick, onContextMenu }: P
         >
           <MoreHorizontal size={14} />
         </button>
-      ) : (
-        prompt.useCount > 0 && (
-          <span className={styles.useCount}>{formatCompactNumber(prompt.useCount)}</span>
-        )
       )}
     </button>
   );

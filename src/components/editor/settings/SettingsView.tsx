@@ -51,12 +51,13 @@ export function SettingsView() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} data-testid="settings-view">
       <nav className={styles.nav}>
         <h2 className={styles.navTitle}>Settings</h2>
         <button
           className={`${styles.navItem} ${activeSection === 'general' ? styles.active : ''}`}
           onClick={() => setActiveSection('general')}
+          data-testid="settings-tab-general"
         >
           <Settings size={16} />
           General
@@ -64,6 +65,7 @@ export function SettingsView() {
         <button
           className={`${styles.navItem} ${activeSection === 'appearance' ? styles.active : ''}`}
           onClick={() => setActiveSection('appearance')}
+          data-testid="settings-tab-appearance"
         >
           <Palette size={16} />
           Appearance
@@ -71,6 +73,7 @@ export function SettingsView() {
         <button
           className={`${styles.navItem} ${activeSection === 'sync' ? styles.active : ''}`}
           onClick={() => setActiveSection('sync')}
+          data-testid="settings-tab-sync"
         >
           {user ? <Cloud size={16} /> : <CloudOff size={16} />}
           Sync
@@ -99,7 +102,6 @@ export function SettingsView() {
         {activeSection === 'sync' && (
           <SyncSection
             enabled={settings.sync.enabled}
-            lastSync={settings.sync.lastSync}
             onEnabledChange={(value) => updateSyncSettings({ enabled: value })}
             user={user}
             isAuthLoading={isAuthLoading}
@@ -167,6 +169,7 @@ function GeneralSection({
             type="checkbox"
             checked={autoLaunch}
             onChange={(e) => onAutoLaunchChange(e.target.checked)}
+            data-testid="auto-launch-toggle"
           />
           <span className={styles.toggleSlider} />
         </label>
@@ -227,6 +230,7 @@ function AppearanceSection({
               onClick={() => onThemeChange(theme)}
               disabled={isSaving}
               title={themeLabels[theme]}
+              data-testid={`theme-${theme}`}
             >
               {themeIcons[theme]}
               <span>{themeLabels[theme]}</span>
@@ -256,6 +260,7 @@ function AppearanceSection({
                 disabled={isSaving}
                 title={color.name}
                 style={{ '--accent-swatch': color.primary } as React.CSSProperties}
+                data-testid={`accent-${key}`}
               >
                 <span className={styles.accentSwatch} />
                 <span className={styles.accentLabel}>{color.name}</span>
@@ -270,7 +275,6 @@ function AppearanceSection({
 
 interface SyncSectionProps {
   enabled: boolean;
-  lastSync: string | null;
   onEnabledChange: (value: boolean) => void;
   user: { uid: string; email: string | null; displayName: string | null; photoUrl: string | null } | null;
   isAuthLoading: boolean;
@@ -284,7 +288,6 @@ interface SyncSectionProps {
 
 function SyncSection({
   enabled,
-  lastSync,
   onEnabledChange,
   user,
   isAuthLoading,
@@ -335,6 +338,7 @@ function SyncSection({
             className={styles.googleButton}
             onClick={onSignIn}
             disabled={isSigningIn || isAuthLoading}
+            data-testid="google-sign-in"
           >
             {isSigningIn ? 'Signing in...' : 'Sign in with Google'}
           </button>
@@ -369,12 +373,6 @@ function SyncSection({
 
           {syncError && (
             <div className={styles.errorText}>Sync error: {syncError}</div>
-          )}
-
-          {lastSync && !syncError && (
-            <div className={styles.lastSync}>
-              Last synced: {new Date(lastSync).toLocaleString()}
-            </div>
           )}
         </>
       )}

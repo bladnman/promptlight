@@ -54,6 +54,7 @@ export function SearchBar() {
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
+        data-testid="search-input"
       />
       <img src="/app-icon.png" alt="" className={styles.appIcon} />
     </div>

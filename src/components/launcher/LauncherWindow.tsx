@@ -32,7 +32,7 @@ export function LauncherWindow() {
   }, [contextMenu.promptId]);
 
   return (
-    <div className={styles.container} onContextMenu={handleContextMenu}>
+    <div className={styles.container} onContextMenu={handleContextMenu} data-testid="launcher-window">
       <SearchBar />
       <ResultsList />
       <KeyboardHints />
