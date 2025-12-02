@@ -2,6 +2,36 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: Data Preservation Rules
+
+**USER DATA IS SACRED. NEVER make changes that could delete or corrupt user prompts.**
+
+This app stores user prompts in:
+- **Local**: `~/Library/Application Support/com.promptlight.app/prompts/`
+- **Cloud**: Firestore (when sync is enabled)
+
+### DO NOT:
+1. **Delete or modify** files in the prompts directory during development
+2. **Modify sync logic** (src-tauri/src/data/sync.rs) without extreme care
+3. **Change the data store** implementation without backup verification
+4. **Trigger full sync operations** (`sync_to_cloud`, `sync_from_cloud`) during dev testing
+5. **Reset Zustand stores** in ways that could trigger empty-state syncs
+
+### Sync Architecture Warning:
+- `sync_from_firestore()` REPLACES local data with cloud data
+- `sync_to_firestore()` REPLACES cloud data with local data
+- If either side has empty data, it will wipe out the other
+- Auth flow (`set_sync_auth`) auto-triggers `sync_from_firestore`
+
+### Before Modifying Data Layer:
+1. Back up `~/Library/Application Support/com.promptlight.app/`
+2. Test with a separate test account, not production data
+3. Verify data integrity after changes
+
+### Historical Data Loss Incidents:
+- Changes to caching layer have caused data loss during dev mode
+- Hot Module Reload (HMR) can reset stores, potentially triggering problematic syncs
+
 ## Build & Development Commands
 
 ```bash

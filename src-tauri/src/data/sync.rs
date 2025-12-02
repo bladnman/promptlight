@@ -138,6 +138,8 @@ impl SyncService {
 
     /// Sync local data to Firestore (upload all)
     /// This is an explicit sync operation, useful for initial upload
+    ///
+    /// SAFETY: Refuses to upload empty data to prevent accidental data loss
     pub async fn sync_to_firestore(&self) -> Result<(), String> {
         let (user_id, id_token, index, firestore) = {
             let state = self.state.read().unwrap();
@@ -152,6 +154,12 @@ impl SyncService {
 
             (user_id, id_token, index, firestore)
         };
+
+        // SAFETY: Never upload empty data - this could wipe out cloud data
+        if index.prompts.is_empty() {
+            eprintln!("[SYNC SAFETY] Refusing to upload empty local data to cloud. This prevents accidental data loss.");
+            return Err("Cannot sync empty local data to cloud. This is a safety measure to prevent data loss.".to_string());
+        }
 
         // Load all prompts with content (outside the lock)
         let prompts = self.load_all_prompts_sync(&index)?;
@@ -173,8 +181,10 @@ impl SyncService {
 
     /// Sync from Firestore to local (download all)
     /// This replaces local data with Firestore data
+    ///
+    /// SAFETY: Refuses to replace local data with empty cloud data if local has prompts
     pub async fn sync_from_firestore(&self) -> Result<(), String> {
-        let (user_id, id_token, firestore) = {
+        let (user_id, id_token, firestore, local_prompt_count) = {
             let state = self.state.read().unwrap();
 
             let user_id = state.user_id.clone()
@@ -183,11 +193,25 @@ impl SyncService {
                 .ok_or("No auth token")?;
             let firestore = state.firestore.clone();
 
-            (user_id, id_token, firestore)
+            // Check how many prompts we have locally (for safety check)
+            let local_index = state.local_store.load_index_sync().ok();
+            let local_prompt_count = local_index.map(|i| i.prompts.len()).unwrap_or(0);
+
+            (user_id, id_token, firestore, local_prompt_count)
         };
 
         // Download from Firestore (outside the lock)
         let (index, prompts) = firestore.download_all(&user_id, &id_token).await?;
+
+        // SAFETY: Don't replace existing local data with empty cloud data
+        // This prevents accidental data loss when cloud is empty or auth fails silently
+        if index.prompts.is_empty() && local_prompt_count > 0 {
+            eprintln!(
+                "[SYNC SAFETY] Cloud returned 0 prompts but local has {}. Skipping sync to prevent data loss.",
+                local_prompt_count
+            );
+            return Ok(()); // Silently succeed - don't wipe local data
+        }
 
         // Save to local (re-acquire lock)
         {
