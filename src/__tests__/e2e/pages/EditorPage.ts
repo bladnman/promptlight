@@ -106,6 +106,19 @@ export class EditorPage {
     });
   }
 
+  /** Trigger editor store to reload prompts from backend */
+  async reloadPrompts() {
+    await this.page.evaluate(() => {
+      // Access the editor store via zustand's getState
+      const store = (window as unknown as { __ZUSTAND_DEVTOOLS_GLOBAL__?: { stores: Map<string, { getState: () => { loadPrompts: () => Promise<void> } }> } }).__ZUSTAND_DEVTOOLS_GLOBAL__?.stores?.get('editor');
+      if (store) {
+        store.getState().loadPrompts();
+      }
+    });
+    // Wait for the async load to complete
+    await this.page.waitForTimeout(300);
+  }
+
   /** Get action history from mock backend */
   async getActionHistory() {
     return await this.page.evaluate(() => {
