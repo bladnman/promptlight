@@ -167,43 +167,61 @@ sed -i.bak 's/^version = "[^"]*"/version = "'"$NEW_VERSION"'"/' src-tauri/Cargo.
 sed -i.bak 's/"version": "[^"]*"/"version": "'"$NEW_VERSION"'"/' src-tauri/tauri.conf.json
 rm -f package.json.bak src-tauri/Cargo.toml.bak src-tauri/tauri.conf.json.bak
 
-# Build release (universal binary for both Intel and Apple Silicon)
-echo ""
-echo "Building universal release (aarch64 + x86_64)..."
-npm run tauri build -- --target universal-apple-darwin
-
-# Sign with certificate
-# Universal builds go to universal-apple-darwin directory
-BUNDLE_PATH="src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app"
+# Build all three targets
 ENTITLEMENTS="src-tauri/entitlements.plist"
 SIGN_IDENTITY="PromptLight Dev"
 
-if security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
-    echo ""
-    echo "Signing with '$SIGN_IDENTITY' certificate..."
-    codesign --force --deep --sign "$SIGN_IDENTITY" --entitlements "$ENTITLEMENTS" "$BUNDLE_PATH"
-else
-    echo -e "${YELLOW}Warning: '$SIGN_IDENTITY' certificate not found, using ad-hoc signing${NC}"
-    codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" "$BUNDLE_PATH"
-fi
+sign_bundle() {
+    local bundle_path="$1"
+    if [[ ! -d "$bundle_path" ]]; then
+        return
+    fi
+    if security find-identity -v -p codesigning | grep -q "$SIGN_IDENTITY"; then
+        codesign --force --deep --sign "$SIGN_IDENTITY" --entitlements "$ENTITLEMENTS" "$bundle_path"
+    else
+        codesign --force --deep --sign - --entitlements "$ENTITLEMENTS" "$bundle_path"
+    fi
+}
 
-# Install locally
+echo ""
+echo "Building Apple Silicon (aarch64)..."
+npm run tauri build -- --target aarch64-apple-darwin
+
+echo ""
+echo "Building Intel (x86_64)..."
+npm run tauri build -- --target x86_64-apple-darwin
+
+echo ""
+echo "Building Universal (aarch64 + x86_64)..."
+npm run tauri build -- --target universal-apple-darwin
+
+# Sign all bundles
+echo ""
+echo "Signing bundles..."
+sign_bundle "src-tauri/target/aarch64-apple-darwin/release/bundle/macos/Promptlight.app"
+sign_bundle "src-tauri/target/x86_64-apple-darwin/release/bundle/macos/Promptlight.app"
+sign_bundle "src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app"
+echo "All bundles signed"
+
+# Install universal build locally
 echo ""
 echo "Installing to /Applications..."
 pkill -9 -f "[Pp]romptlight" 2>/dev/null || true
 sleep 1
 rm -rf /Applications/Promptlight.app
-cp -R "$BUNDLE_PATH" /Applications/
+cp -R "src-tauri/target/universal-apple-darwin/release/bundle/macos/Promptlight.app" /Applications/
 echo -e "${GREEN}Installed to /Applications/Promptlight.app${NC}"
 
-# Find DMG (universal builds go to universal-apple-darwin directory)
-DMG_PATH=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" | head -1)
-if [[ -z "$DMG_PATH" ]]; then
-    echo -e "${RED}Error: No DMG found in src-tauri/target/universal-apple-darwin/release/bundle/dmg${NC}"
-    exit 1
-fi
-echo "DMG: $DMG_PATH"
-DMG_FILENAME=$(basename "$DMG_PATH")
+# Find all DMGs
+DMG_AARCH64=$(find src-tauri/target/aarch64-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
+DMG_X64=$(find src-tauri/target/x86_64-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
+DMG_UNIVERSAL=$(find src-tauri/target/universal-apple-darwin/release/bundle/dmg -name "*.dmg" 2>/dev/null | head -1)
+
+echo ""
+echo "DMGs built:"
+[[ -n "$DMG_AARCH64" ]] && echo "  - $DMG_AARCH64"
+[[ -n "$DMG_X64" ]] && echo "  - $DMG_X64"
+[[ -n "$DMG_UNIVERSAL" ]] && echo "  - $DMG_UNIVERSAL"
 
 # Commit version bump (if there are changes)
 echo ""
@@ -223,18 +241,31 @@ git tag "$NEW_TAG"
 echo "Pushing to GitHub..."
 git push origin "$CURRENT_BRANCH" --tags
 
-# Create GitHub release
+# Create GitHub release with all DMGs
 echo ""
 echo "Creating GitHub release..."
+
+# Build list of DMG files to upload
+DMG_FILES=""
+[[ -n "$DMG_UNIVERSAL" ]] && DMG_FILES="$DMG_FILES $DMG_UNIVERSAL"
+[[ -n "$DMG_AARCH64" ]] && DMG_FILES="$DMG_FILES $DMG_AARCH64"
+[[ -n "$DMG_X64" ]] && DMG_FILES="$DMG_FILES $DMG_X64"
+
 gh release create "$NEW_TAG" \
     --title "PromptLight v$NEW_VERSION" \
     --notes "## PromptLight v$NEW_VERSION
 
 ### Installation
 
-**macOS (Universal - works on both Intel and Apple Silicon):**
-- Download \`$DMG_FILENAME\`
+**macOS:**
+- Download \`PromptLight_${NEW_VERSION}_universal.dmg\` (recommended - works on all Macs)
 - Open the DMG and drag PromptLight to Applications
+
+**macOS (Apple Silicon):**
+- Download \`PromptLight_${NEW_VERSION}_aarch64.dmg\`
+
+**macOS (Intel):**
+- Download \`PromptLight_${NEW_VERSION}_x64.dmg\`
 
 > **macOS Gatekeeper:** Since this app is not signed with an Apple Developer certificate, macOS may show a warning. To open the app:
 > 1. Try to open PromptLight - you'll see a warning that it can't be opened
@@ -252,7 +283,7 @@ This permission persists across app updates.
 
 ### Changelog
 See commit history for changes." \
-    "$DMG_PATH"
+    $DMG_FILES
 
 echo ""
 echo -e "${GREEN}Release v${NEW_VERSION} complete!${NC}"
