@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { backend } from '../services/backend';
 import type { Prompt, PromptMetadata, FolderMetadata } from '../types';
 import { DEFAULT_PROMPT_ICON, DEFAULT_PROMPT_COLOR } from '../config/constants';
@@ -42,6 +43,8 @@ interface EditorState {
   newFolderName: string;
   /** Folder being edited (for rename dialog) */
   editingFolder: string | null;
+  /** Whether the editor window is pinned (always on top) */
+  isPinned: boolean;
 }
 
 interface EditorActions {
@@ -91,6 +94,10 @@ interface EditorActions {
   deleteFolder: (name: string) => Promise<boolean>;
   /** Set the current view */
   setView: (view: EditorView) => void;
+  /** Toggle pin mode (always on top) */
+  togglePin: () => Promise<void>;
+  /** Set pin mode directly */
+  setIsPinned: (pinned: boolean) => Promise<void>;
 }
 
 type EditorStore = EditorState & EditorActions;
@@ -113,6 +120,7 @@ const initialState: EditorState = {
   isAddingFolder: false,
   newFolderName: '',
   editingFolder: null,
+  isPinned: false,
 };
 
 const emptyPrompt: Prompt = {
@@ -421,5 +429,29 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
 
   setView: (view) => {
     set({ currentView: view });
+  },
+
+  togglePin: async () => {
+    const { isPinned } = get();
+    const newPinned = !isPinned;
+    try {
+      const window = getCurrentWindow();
+      await window.setAlwaysOnTop(newPinned);
+      set({ isPinned: newPinned });
+    } catch (error) {
+      console.error('Failed to toggle pin:', error);
+      set({ error: String(error) });
+    }
+  },
+
+  setIsPinned: async (pinned: boolean) => {
+    try {
+      const window = getCurrentWindow();
+      await window.setAlwaysOnTop(pinned);
+      set({ isPinned: pinned });
+    } catch (error) {
+      console.error('Failed to set pin state:', error);
+      set({ error: String(error) });
+    }
   },
 }));

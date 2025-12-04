@@ -7,21 +7,25 @@ import { HOTKEYS } from '../config/constants';
  * Keyboard shortcuts for the editor window
  */
 export function useEditorKeyboard() {
-  const { save, createNew, isDirty, currentView, setView } = useEditorStore();
+  const { save, createNew, isDirty, currentView, setView, isPinned } = useEditorStore();
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // Escape key - save (if dirty) then close window
+      // Escape key - only close window when pinned (quick dismissal mode)
       if (e.key === 'Escape') {
-        e.preventDefault();
+        // In pinned mode, Escape closes the window
+        if (isPinned) {
+          e.preventDefault();
 
-        // Auto-save is always on, but save explicitly if dirty
-        if (isDirty) {
-          await save();
+          // Auto-save is always on, but save explicitly if dirty
+          if (isDirty) {
+            await save();
+          }
+
+          // Close the editor window
+          await getCurrentWindow().close();
         }
-
-        // Close the editor window
-        await getCurrentWindow().close();
+        // In normal mode, Escape does nothing special
         return;
       }
 
@@ -55,5 +59,5 @@ export function useEditorKeyboard() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [save, createNew, isDirty, currentView, setView]);
+  }, [save, createNew, isDirty, currentView, setView, isPinned]);
 }

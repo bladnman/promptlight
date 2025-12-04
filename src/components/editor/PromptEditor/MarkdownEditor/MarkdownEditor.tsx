@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { ink, inkPlugin } from 'ink-mde';
 import type { Instance } from 'ink-mde';
-import { keymap } from '@codemirror/view';
+import { keymap, type EditorView } from '@codemirror/view';
 import styles from './MarkdownEditor.module.css';
 
 interface MarkdownEditorProps {
@@ -42,8 +42,18 @@ export function MarkdownEditor({
     // Clear any existing content (handles React StrictMode double-mount)
     containerRef.current.innerHTML = '';
 
-    // Create keyboard shortcuts for bold (Cmd+B) and italic (Cmd+I)
+    // Create keyboard shortcuts for formatting and selection
     const formattingKeymap = keymap.of([
+      {
+        key: 'Mod-a',
+        run: (view: EditorView) => {
+          // Select all content in the editor
+          view.dispatch({
+            selection: { anchor: 0, head: view.state.doc.length },
+          });
+          return true;
+        },
+      },
       {
         key: 'Mod-b',
         run: () => {
