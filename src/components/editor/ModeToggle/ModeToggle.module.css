@@ -40,37 +40,3 @@
   color: var(--text-primary);
   box-shadow: var(--shadow-sm);
 }
-
-/* Spacer to push pin button to the right */
-.spacer {
-  flex: 1;
-}
-
-/* Pin button */
-.pinButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.pinButton:hover {
-  background: var(--hover-bg);
-  color: var(--text-secondary);
-}
-
-.pinButton.pinned {
-  background: var(--accent-bg);
-  color: var(--accent-text);
-}
-
-.pinButton.pinned:hover {
-  background: var(--accent-bg-hover);
-}

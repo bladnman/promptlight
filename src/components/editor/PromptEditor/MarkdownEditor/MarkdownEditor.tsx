@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { ink, inkPlugin } from 'ink-mde';
 import type { Instance } from 'ink-mde';
-import { keymap, type EditorView } from '@codemirror/view';
+import { keymap } from '@codemirror/view';
 import styles from './MarkdownEditor.module.css';
 
 interface MarkdownEditorProps {
@@ -46,11 +46,12 @@ export function MarkdownEditor({
     const formattingKeymap = keymap.of([
       {
         key: 'Mod-a',
-        run: (view: EditorView) => {
-          // Select all content in the editor
-          view.dispatch({
-            selection: { anchor: 0, head: view.state.doc.length },
-          });
+        run: () => {
+          // Use ink-mde's native API to select all text
+          if (editorRef.current) {
+            const doc = editorRef.current.getDoc();
+            editorRef.current.select({ selections: [{ start: 0, end: doc.length }] });
+          }
           return true;
         },
       },

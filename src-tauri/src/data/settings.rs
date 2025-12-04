@@ -12,6 +12,9 @@ pub struct GeneralSettings {
     /// None means no hotkey is registered
     #[serde(default = "default_hotkey")]
     pub hotkey: Option<String>,
+    /// Whether the editor window floats above other windows
+    #[serde(default = "default_editor_always_on_top")]
+    pub editor_always_on_top: bool,
 }
 
 /// Default hotkey: Cmd/Ctrl+Shift+Space
@@ -19,11 +22,17 @@ fn default_hotkey() -> Option<String> {
     Some("CommandOrControl+Shift+Space".to_string())
 }
 
+/// Default editor always on top: true
+fn default_editor_always_on_top() -> bool {
+    true
+}
+
 impl Default for GeneralSettings {
     fn default() -> Self {
         Self {
             auto_launch: false,
             hotkey: default_hotkey(),
+            editor_always_on_top: default_editor_always_on_top(),
         }
     }
 }

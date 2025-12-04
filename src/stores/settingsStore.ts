@@ -13,6 +13,8 @@ export interface GeneralSettings {
   autoLaunch: boolean;
   /** Global hotkey to summon the launcher (e.g., "CommandOrControl+Shift+Space") */
   hotkey: string | null;
+  /** Whether the editor window should float above other windows (default: true) */
+  editorAlwaysOnTop: boolean;
 }
 
 /** Cloud sync settings */
@@ -60,6 +62,8 @@ interface SettingsActions {
   setAutoLaunch: (enabled: boolean) => Promise<void>;
   /** Set global hotkey (null to disable) */
   setHotkey: (hotkey: string | null) => Promise<void>;
+  /** Set editor always-on-top mode */
+  setEditorAlwaysOnTop: (enabled: boolean) => Promise<void>;
   /** Set theme */
   setTheme: (theme: ThemeOption) => Promise<void>;
   /** Set accent color */
@@ -74,6 +78,7 @@ const defaultSettings: AppSettings = {
   general: {
     autoLaunch: false,
     hotkey: 'CommandOrControl+Shift+Space',
+    editorAlwaysOnTop: true,
   },
   sync: {
     enabled: false,
@@ -119,9 +124,13 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         backend.getSettings(),
         backend.getAutoStartEnabled().catch(() => false),
       ]);
-      // Ensure appearance has defaults if missing (backwards compat)
+      // Ensure fields have defaults if missing (backwards compat)
       const normalizedSettings: AppSettings = {
         ...settings,
+        general: {
+          ...settings.general,
+          editorAlwaysOnTop: settings.general?.editorAlwaysOnTop ?? true,
+        },
         appearance: {
           theme: settings.appearance?.theme ?? DEFAULT_THEME,
           accentColor: settings.appearance?.accentColor ?? DEFAULT_ACCENT_COLOR,
@@ -248,6 +257,11 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
       console.error('Failed to set hotkey:', error);
       set({ error: String(error), isSaving: false });
     }
+  },
+
+  setEditorAlwaysOnTop: async (enabled) => {
+    const { updateGeneralSettings } = get();
+    await updateGeneralSettings({ editorAlwaysOnTop: enabled });
   },
 
   clearError: () => {

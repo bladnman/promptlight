@@ -119,6 +119,13 @@ export function Sidebar() {
         >
           <Menu size={16} />
         </button>
+        <button
+          className={styles.collapsedNewButton}
+          onClick={createNew}
+          title="New prompt (Cmd+N)"
+        >
+          <Plus size={16} />
+        </button>
       </div>
     );
   }

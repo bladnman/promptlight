@@ -1,9 +1,9 @@
-import { Edit, Settings, Pin, PinOff } from 'lucide-react';
+import { Edit, Settings } from 'lucide-react';
 import { useEditorStore } from '../../../stores/editorStore';
 import styles from './ModeToggle.module.css';
 
 export function ModeToggle() {
-  const { currentView, setView, isPinned, togglePin } = useEditorStore();
+  const { currentView, setView } = useEditorStore();
 
   return (
     <div className={styles.container}>
@@ -21,14 +21,6 @@ export function ModeToggle() {
       >
         <Settings size={14} />
         Settings
-      </button>
-      <div className={styles.spacer} />
-      <button
-        className={`${styles.pinButton} ${isPinned ? styles.pinned : ''}`}
-        onClick={togglePin}
-        title={isPinned ? 'Unpin window (Escape to close)' : 'Pin window (always on top)'}
-      >
-        {isPinned ? <Pin size={14} /> : <PinOff size={14} />}
       </button>
     </div>
   );

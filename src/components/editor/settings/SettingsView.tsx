@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard, Palette, Sun, Moon, Monitor } from 'lucide-react';
+import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard, Palette, Sun, Moon, Monitor, Layers } from 'lucide-react';
 import { getVersion } from '@tauri-apps/api/app';
 import { useSettingsStore, type AppearanceSettings } from '../../../stores/settingsStore';
 import { useAuthStore } from '../../../stores/authStore';
@@ -22,6 +22,7 @@ export function SettingsView() {
     updateSyncSettings,
     setAutoLaunch,
     setHotkey,
+    setEditorAlwaysOnTop,
     setTheme,
     setAccentColor,
   } = useSettingsStore();
@@ -88,6 +89,8 @@ export function SettingsView() {
             onAutoLaunchChange={setAutoLaunch}
             hotkey={settings.general.hotkey}
             onHotkeyChange={setHotkey}
+            editorAlwaysOnTop={settings.general.editorAlwaysOnTop}
+            onEditorAlwaysOnTopChange={setEditorAlwaysOnTop}
             isSaving={isSaving}
           />
         )}
@@ -123,6 +126,8 @@ interface GeneralSectionProps {
   onAutoLaunchChange: (value: boolean) => void;
   hotkey: string | null;
   onHotkeyChange: (value: string | null) => void;
+  editorAlwaysOnTop: boolean;
+  onEditorAlwaysOnTopChange: (value: boolean) => void;
   isSaving: boolean;
 }
 
@@ -131,6 +136,8 @@ function GeneralSection({
   onAutoLaunchChange,
   hotkey,
   onHotkeyChange,
+  editorAlwaysOnTop,
+  onEditorAlwaysOnTopChange,
   isSaving,
 }: GeneralSectionProps) {
   return (
@@ -152,6 +159,27 @@ function GeneralSection({
           </div>
         </div>
         <HotkeyInput value={hotkey} onChange={onHotkeyChange} disabled={isSaving} />
+      </div>
+
+      <div className={styles.settingRow}>
+        <div className={styles.settingInfo}>
+          <div className={styles.settingLabel}>
+            <Layers size={16} />
+            Floating editor
+          </div>
+          <div className={styles.settingHint}>
+            Keep editor above other windows. Opening the launcher will close the editor.
+          </div>
+        </div>
+        <label className={styles.toggle}>
+          <input
+            type="checkbox"
+            checked={editorAlwaysOnTop}
+            onChange={(e) => onEditorAlwaysOnTopChange(e.target.checked)}
+            data-testid="editor-always-on-top-toggle"
+          />
+          <span className={styles.toggleSlider} />
+        </label>
       </div>
 
       <div className={styles.settingRow}>

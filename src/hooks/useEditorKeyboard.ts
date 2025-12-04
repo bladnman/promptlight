@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEditorStore } from '../stores/editorStore';
 import { HOTKEYS } from '../config/constants';
 
@@ -7,29 +6,11 @@ import { HOTKEYS } from '../config/constants';
  * Keyboard shortcuts for the editor window
  */
 export function useEditorKeyboard() {
-  const { save, createNew, isDirty, currentView, setView, isPinned } = useEditorStore();
+  const { save, createNew, isDirty, currentView, setView } = useEditorStore();
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // Escape key - only close window when pinned (quick dismissal mode)
-      if (e.key === 'Escape') {
-        // In pinned mode, Escape closes the window
-        if (isPinned) {
-          e.preventDefault();
-
-          // Auto-save is always on, but save explicitly if dirty
-          if (isDirty) {
-            await save();
-          }
-
-          // Close the editor window
-          await getCurrentWindow().close();
-        }
-        // In normal mode, Escape does nothing special
-        return;
-      }
-
-      // Only handle Cmd/Ctrl combinations below
+      // Only handle Cmd/Ctrl combinations
       if (!(e.metaKey || e.ctrlKey)) {
         return;
       }
@@ -59,5 +40,5 @@ export function useEditorKeyboard() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [save, createNew, isDirty, currentView, setView, isPinned]);
+  }, [save, createNew, isDirty, currentView, setView]);
 }
