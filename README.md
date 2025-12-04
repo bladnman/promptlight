@@ -30,7 +30,7 @@ PromptLight removes that friction with a keystroke-summoned launcher that finds 
 ### Clone and Install
 
 ```bash
-git clone https://github.com/your-org/promptlight.git
+git clone https://github.com/bladnman/promptlight.git
 cd promptlight
 npm install
 ```
