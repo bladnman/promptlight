@@ -10,6 +10,16 @@ use crate::data::settings::AppSettings;
 use crate::os::focus::get_key_window_screen_bounds;
 use crate::os::previous_app;
 
+/// Close the editor window if it exists and always-on-top mode is enabled
+fn close_editor_if_always_on_top(app: &AppHandle) {
+    let settings = AppSettings::load();
+    if settings.general.editor_always_on_top {
+        if let Some(editor) = app.get_webview_window("editor") {
+            let _ = editor.close();
+        }
+    }
+}
+
 const WINDOW_WIDTH: f64 = 650.0;
 
 /// State to track the currently registered shortcut
@@ -173,6 +183,9 @@ pub fn register_hotkey(app: &AppHandle, hotkey_str: &str) -> Result<(), String> 
                 if window.is_visible().unwrap_or(false) {
                     let _ = window.hide();
                 } else {
+                    // Close editor window if in always-on-top mode (they shouldn't coexist)
+                    close_editor_if_always_on_top(&app_handle);
+
                     // Capture previous app before showing (for paste-back feature)
                     if let Err(e) = previous_app::capture_previous_app() {
                         eprintln!("[hotkey] Failed to capture previous app: {}", e);

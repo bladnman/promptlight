@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useEditorStore } from '../stores/editorStore';
 import { HOTKEYS } from '../config/constants';
 
@@ -11,21 +10,7 @@ export function useEditorKeyboard() {
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
-      // Escape key - save (if dirty) then close window
-      if (e.key === 'Escape') {
-        e.preventDefault();
-
-        // Auto-save is always on, but save explicitly if dirty
-        if (isDirty) {
-          await save();
-        }
-
-        // Close the editor window
-        await getCurrentWindow().close();
-        return;
-      }
-
-      // Only handle Cmd/Ctrl combinations below
+      // Only handle Cmd/Ctrl combinations
       if (!(e.metaKey || e.ctrlKey)) {
         return;
       }

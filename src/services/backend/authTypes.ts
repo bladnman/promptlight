@@ -30,6 +30,7 @@ export interface AuthSession {
 export interface GeneralSettings {
   autoLaunch: boolean;
   hotkey: string | null;
+  editorAlwaysOnTop: boolean;
 }
 
 /** Cloud sync settings */

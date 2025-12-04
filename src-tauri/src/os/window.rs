@@ -1,6 +1,8 @@
 use serde::Deserialize;
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
 
+use crate::data::settings::AppSettings;
+
 /// Screen bounds passed from frontend for window positioning
 #[derive(Debug, Clone, Deserialize)]
 pub struct ScreenBounds {
@@ -13,18 +15,27 @@ pub struct ScreenBounds {
 /// Open the editor window, optionally loading a specific prompt
 /// If screen_bounds is provided, the window will be centered on that screen
 /// view parameter can be "prompts" (default) or "settings"
+/// always_on_top parameter overrides the setting (used when opening from launcher)
 #[tauri::command]
 pub async fn open_editor_window(
     app: AppHandle,
     prompt_id: Option<String>,
     screen_bounds: Option<ScreenBounds>,
     view: Option<String>,
+    always_on_top: Option<bool>,
 ) -> Result<(), String> {
     let label = "editor";
     let view_mode = view.as_deref().unwrap_or("prompts");
 
+    // Get always_on_top from parameter or settings
+    let settings = AppSettings::load();
+    let is_always_on_top = always_on_top.unwrap_or(settings.general.editor_always_on_top);
+
     // If window already exists, show it and optionally emit event to load prompt or switch view
     if let Some(window) = app.get_webview_window(label) {
+        // Update always-on-top state in case setting changed
+        window.set_always_on_top(is_always_on_top).map_err(|e| e.to_string())?;
+
         window.show().map_err(|e| e.to_string())?;
         window.set_focus().map_err(|e| e.to_string())?;
 
@@ -58,7 +69,16 @@ pub async fn open_editor_window(
     let mut builder = WebviewWindowBuilder::new(&app, label, WebviewUrl::App(url.into()))
         .title("PromptLight Editor")
         .inner_size(window_width, window_height)
-        .min_inner_size(800.0, 600.0);
+        .min_inner_size(800.0, 600.0)
+        .always_on_top(is_always_on_top);
+
+    // In always-on-top mode, hide minimize/maximize buttons (macOS)
+    #[cfg(target_os = "macos")]
+    if is_always_on_top {
+        builder = builder
+            .minimizable(false)
+            .maximizable(false);
+    }
 
     // Position on provided screen or center as fallback
     if let Some(bounds) = screen_bounds {
@@ -71,5 +91,14 @@ pub async fn open_editor_window(
 
     builder.build().map_err(|e| e.to_string())?;
 
+    Ok(())
+}
+
+/// Close the editor window if it exists
+#[tauri::command]
+pub fn close_editor_window(app: AppHandle) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("editor") {
+        window.close().map_err(|e| e.to_string())?;
+    }
     Ok(())
 }

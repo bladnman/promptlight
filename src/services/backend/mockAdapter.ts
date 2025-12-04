@@ -32,6 +32,7 @@ const defaultSettings: AppSettings = {
   general: {
     autoLaunch: false,
     hotkey: 'CommandOrControl+Shift+Space',
+    editorAlwaysOnTop: true,
   },
   sync: {
     enabled: false,

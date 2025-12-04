@@ -12,8 +12,9 @@
   min-width: 40px;
   background: var(--bg-secondary);
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
   padding-top: var(--space-md);
 }
 
@@ -31,6 +32,21 @@
 .expandButton:hover {
   background: var(--selection-bg);
   color: var(--text-primary);
+}
+
+.collapsedNewButton {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.collapsedNewButton:hover {
+  background: var(--selection-bg);
+  color: var(--accent-primary);
 }
 
 .header {

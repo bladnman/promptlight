@@ -125,6 +125,7 @@ pub fn run() {
             os::paste::paste_from_editor,
             os::paste::copy_as_markdown_file,
             os::window::open_editor_window,
+            os::window::close_editor_window,
             // Hotkey commands
             os::hotkey::get_current_hotkey,
             os::hotkey::set_hotkey,

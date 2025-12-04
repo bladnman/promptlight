@@ -42,8 +42,19 @@ export function MarkdownEditor({
     // Clear any existing content (handles React StrictMode double-mount)
     containerRef.current.innerHTML = '';
 
-    // Create keyboard shortcuts for bold (Cmd+B) and italic (Cmd+I)
+    // Create keyboard shortcuts for formatting and selection
     const formattingKeymap = keymap.of([
+      {
+        key: 'Mod-a',
+        run: () => {
+          // Use ink-mde's native API to select all text
+          if (editorRef.current) {
+            const doc = editorRef.current.getDoc();
+            editorRef.current.select({ selections: [{ start: 0, end: doc.length }] });
+          }
+          return true;
+        },
+      },
       {
         key: 'Mod-b',
         run: () => {
