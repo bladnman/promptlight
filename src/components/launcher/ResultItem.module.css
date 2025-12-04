@@ -7,7 +7,6 @@
   transition: background var(--transition-fast);
 }
 
-.item:hover,
 .item.selected {
   background: var(--selection-bg);
 }
