@@ -3,12 +3,33 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 
 use crate::os::previous_app;
 
+/// Check and log accessibility permission status (macOS only)
+#[cfg(target_os = "macos")]
+fn log_accessibility_status() {
+    use crate::os::platform::macos::check_accessibility_permission;
+    let has_permission = check_accessibility_permission();
+    if has_permission {
+        println!("[paste] Accessibility permission: GRANTED");
+    } else {
+        println!("[paste] Accessibility permission: DENIED - paste will fail!");
+        println!("[paste] User must enable in: System Settings > Privacy & Security > Accessibility");
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn log_accessibility_status() {
+    println!("[paste] Accessibility check: N/A (not macOS)");
+}
+
 /// Copy text to clipboard, return focus to previous app, and paste.
 /// Uses graceful degradation - each step is attempted even if previous fails.
 /// Only clipboard failure returns an error; other failures are silent.
 #[tauri::command]
 pub async fn paste_and_dismiss(app: AppHandle, text: String) -> Result<(), String> {
     println!("[paste] Starting paste_and_dismiss, text length: {}", text.len());
+
+    // Log accessibility status upfront for debugging
+    log_accessibility_status();
 
     // 1. Copy text to clipboard (MUST succeed for paste to work)
     app.clipboard()

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Settings, Cloud, CloudOff, Power, LogOut, User, Keyboard, Palette, Sun, Moon, Monitor, Layers } from 'lucide-react';
 import { getVersion } from '@tauri-apps/api/app';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useSettingsStore, type AppearanceSettings } from '../../../stores/settingsStore';
 import { useAuthStore } from '../../../stores/authStore';
 import { HotkeyInput } from './HotkeyInput';
@@ -42,6 +43,32 @@ export function SettingsView() {
     checkAuth();
     getVersion().then(setAppVersion).catch(() => {});
   }, [loadSettings, checkAuth]);
+
+  // Handle sign-in with window management
+  // Temporarily disable always-on-top so browser can appear in front
+  const handleSignIn = async () => {
+    const appWindow = getCurrentWindow();
+
+    // Disable always-on-top so browser appears in front
+    try {
+      await appWindow.setAlwaysOnTop(false);
+    } catch (e) {
+      console.error('Failed to disable always-on-top:', e);
+    }
+
+    try {
+      await signInWithGoogle();
+    } finally {
+      // Restore always-on-top if it was enabled in settings
+      if (settings.general.editorAlwaysOnTop) {
+        try {
+          await appWindow.setAlwaysOnTop(true);
+        } catch (e) {
+          console.error('Failed to restore always-on-top:', e);
+        }
+      }
+    }
+  };
 
   if (isLoading) {
     return (
@@ -112,7 +139,7 @@ export function SettingsView() {
             isSaving={isSaving}
             authError={authError}
             syncError={settingsError}
-            onSignIn={signInWithGoogle}
+            onSignIn={handleSignIn}
             onSignOut={signOut}
           />
         )}

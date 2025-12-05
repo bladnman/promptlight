@@ -4,6 +4,8 @@ use sha2::{Digest, Sha256};
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 use std::sync::OnceLock;
+use tauri::AppHandle;
+use tauri_plugin_opener::OpenerExt;
 use url::Url;
 
 /// Google OAuth configuration
@@ -63,28 +65,136 @@ fn generate_code_challenge(verifier: &str) -> String {
     URL_SAFE_NO_PAD.encode(hash)
 }
 
+/// Open a URL using NSWorkspace (native macOS API)
+/// Returns true if the URL was successfully opened
+#[cfg(target_os = "macos")]
+fn open_url_with_nsworkspace(url_string: &str) -> bool {
+    use cocoa::base::{id, nil, BOOL, YES};
+    use cocoa::foundation::NSString;
+    use objc::{class, msg_send, sel, sel_impl};
+
+    unsafe {
+        // Create NSURL from string
+        let ns_url_string: id = NSString::alloc(nil).init_str(url_string);
+        let ns_url: id = msg_send![class!(NSURL), URLWithString: ns_url_string];
+
+        if ns_url == nil {
+            println!("[auth] ERROR: Failed to create NSURL from string");
+            return false;
+        }
+
+        // Get shared NSWorkspace
+        let workspace: id = msg_send![class!(NSWorkspace), sharedWorkspace];
+        if workspace == nil {
+            println!("[auth] ERROR: Failed to get NSWorkspace");
+            return false;
+        }
+
+        // Open URL with default browser
+        let result: BOOL = msg_send![workspace, openURL: ns_url];
+
+        result == YES
+    }
+}
+
 /// Start local server, open browser for OAuth, and wait for callback
-pub async fn start_google_sign_in() -> Result<GoogleTokens, String> {
+pub async fn start_google_sign_in(app: &AppHandle) -> Result<GoogleTokens, String> {
+    println!("[auth] ====== OAUTH FLOW START ======");
+    println!("[auth] Step 1: Generating PKCE values...");
+
     // Generate PKCE values
     let code_verifier = generate_code_verifier();
     let code_challenge = generate_code_challenge(&code_verifier);
+    println!("[auth] Step 1: COMPLETE - PKCE values generated");
 
     // Find an available port
+    println!("[auth] Step 2: Binding TCP listener...");
     let listener = TcpListener::bind("127.0.0.1:0")
-        .map_err(|e| format!("Failed to bind local server: {}", e))?;
+        .map_err(|e| {
+            println!("[auth] Step 2: FAILED - {}", e);
+            format!("Failed to bind local server: {}", e)
+        })?;
     let port = listener
         .local_addr()
-        .map_err(|e| format!("Failed to get local address: {}", e))?
+        .map_err(|e| {
+            println!("[auth] Step 2: FAILED to get port - {}", e);
+            format!("Failed to get local address: {}", e)
+        })?
         .port();
+    println!("[auth] Step 2: COMPLETE - Bound to port {}", port);
 
     let redirect_uri = format!("http://127.0.0.1:{}", port);
 
     // Build the authorization URL
+    println!("[auth] Step 3: Building auth URL...");
     let auth_url = build_auth_url(&redirect_uri, &code_challenge)?;
+    println!("[auth] Step 3: COMPLETE - Auth URL built");
+    println!("[auth] Step 4: Opening browser...");
 
-    // Open the browser - do this BEFORE spawning the blocking task
-    // so the browser has time to start while we wait
-    opener::open(&auth_url).map_err(|e| format!("Failed to open browser: {}", e))?;
+    // Open the browser using NSWorkspace (native macOS API)
+    // This is the most reliable method on macOS 15 Sequoia
+    #[cfg(target_os = "macos")]
+    {
+        println!("[auth] === BROWSER OPEN ATTEMPT ===");
+        println!("[auth] Full auth URL: {}", &auth_url);
+
+        // Try NSWorkspace first (native macOS API)
+        println!("[auth] Method 1: Trying NSWorkspace.openURL...");
+        let ns_result = open_url_with_nsworkspace(&auth_url);
+        println!("[auth] NSWorkspace returned: {}", ns_result);
+
+        if !ns_result {
+            println!("[auth] NSWorkspace failed, trying /usr/bin/open...");
+
+            // Fallback 1: Try /usr/bin/open command
+            match std::process::Command::new("/usr/bin/open")
+                .arg(&auth_url)
+                .output()
+            {
+                Ok(output) => {
+                    println!("[auth] /usr/bin/open exit code: {:?}", output.status.code());
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        println!("[auth] /usr/bin/open stderr: {}", stderr);
+
+                        // Fallback 2: Try Tauri opener
+                        println!("[auth] Trying Tauri opener...");
+                        match app.opener().open_url(&auth_url, None::<&str>) {
+                            Ok(_) => println!("[auth] Tauri opener returned Ok"),
+                            Err(e) => {
+                                println!("[auth] ERROR: All methods failed. Tauri error: {}", e);
+                                return Err(format!("Could not open browser. Check Console.app for [auth] logs."));
+                            }
+                        }
+                    }
+                }
+                Err(e) => {
+                    println!("[auth] /usr/bin/open error: {}", e);
+                    // Try Tauri opener
+                    match app.opener().open_url(&auth_url, None::<&str>) {
+                        Ok(_) => println!("[auth] Tauri opener returned Ok"),
+                        Err(e2) => {
+                            println!("[auth] ERROR: All methods failed: {}, {}", e, e2);
+                            return Err(format!("Could not open browser. Check Console.app for [auth] logs."));
+                        }
+                    }
+                }
+            }
+        }
+
+        println!("[auth] Step 4: COMPLETE - Browser open returned success");
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        match app.opener().open_url(&auth_url, None::<&str>) {
+            Ok(_) => println!("[auth] Browser open command succeeded"),
+            Err(e) => {
+                println!("[auth] ERROR: Failed to open browser: {}", e);
+                return Err(format!("Failed to open browser: {}", e));
+            }
+        }
+    }
 
     // Wait for the OAuth callback in a blocking task to not block the async runtime
     // This is critical: TcpListener::accept() is blocking and would freeze the app

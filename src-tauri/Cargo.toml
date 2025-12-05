@@ -34,7 +34,6 @@ url = "2"
 base64 = "0.22"
 sha2 = "0.10"
 rand = "0.8"
-opener = "0.7"
 dotenvy = "0.15"
 
 [target.'cfg(target_os = "macos")'.dependencies]

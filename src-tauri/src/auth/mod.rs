@@ -9,6 +9,7 @@ pub use google::start_google_sign_in;
 pub use storage::{get_auth_state, clear_auth, load_auth_session, AuthState};
 
 use serde::{Deserialize, Serialize};
+use tauri::AppHandle;
 
 /// User information from Firebase Auth
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,10 +44,14 @@ pub struct AuthSession {
 /// Opens the browser for OAuth consent and returns the auth session
 #[tauri::command]
 pub async fn sign_in_with_google(
+    app: AppHandle,
     api_key: String,
 ) -> Result<AuthSession, String> {
-    // Start Google OAuth flow
-    let google_tokens = google::start_google_sign_in().await?;
+    println!("[auth] >>>>>> sign_in_with_google COMMAND CALLED <<<<<<");
+    println!("[auth] API key length: {}", api_key.len());
+
+    // Start Google OAuth flow (uses Tauri opener for macOS compatibility)
+    let google_tokens = google::start_google_sign_in(&app).await?;
 
     // Exchange Google tokens for Firebase Auth
     let session = firebase::sign_in_with_google_token(&api_key, &google_tokens).await?;

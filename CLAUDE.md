@@ -43,6 +43,11 @@ npm run dev:vite           # Start Vite only (frontend, no Tauri)
 npm run build              # TypeScript check + Vite build (frontend only)
 npm run install:local      # Build release and install to /Applications (macOS)
 
+# CRITICAL: Building release DMGs with OAuth support
+# Must source .env.local BEFORE building to embed Google OAuth credentials
+source .env.local && npm run tauri build -- --target universal-apple-darwin
+# If credentials aren't embedded, Sign in with Google will silently fail
+
 # Unit Testing
 npm run test               # Run all unit tests once
 npm run test:watch         # Run tests in watch mode
@@ -370,3 +375,23 @@ npm run tauri build -- --target universal-apple-darwin
 ```
 
 The DMG will be at: `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`
+
+## CRITICAL: Code Signing
+
+**ALWAYS use the "PromptLight Dev" signing identity when building DMGs.**
+
+The signing identity is configured in `src-tauri/tauri.conf.json`:
+```json
+"macOS": {
+  "signingIdentity": "PromptLight Dev"
+}
+```
+
+**DO NOT set `signingIdentity` to `null`** - this causes every DMG to require manual security approval on macOS, which is extremely frustrating for testing.
+
+To verify the signing identity exists in keychain:
+```bash
+security find-identity -v -p codesigning
+```
+
+Should show: `"PromptLight Dev"` (or similar dev certificate)
