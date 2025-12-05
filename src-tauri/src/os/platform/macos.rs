@@ -9,7 +9,12 @@ use cocoa::foundation::NSString;
 use core_graphics::event::{CGEvent, CGEventFlags, CGEventTapLocation, CGKeyCode};
 use core_graphics::event_source::{CGEventSource, CGEventSourceStateID};
 use objc::{class, msg_send, sel, sel_impl};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+
+/// Track if we've already prompted for accessibility permissions this session.
+/// Prevents repeatedly showing the prompt on every paste attempt.
+static PERMISSION_PROMPTED: AtomicBool = AtomicBool::new(false);
 
 /// Check if the app has accessibility permissions (required for CGEvent paste simulation).
 /// Uses AXIsProcessTrusted() from the Accessibility framework.
@@ -180,13 +185,18 @@ impl InputSimulator for MacOSInputSimulator {
             println!("[platform:macos] Paste simulation may fail. Grant permission in:");
             println!("[platform:macos]   System Settings > Privacy & Security > Accessibility");
 
-            // Request permission (shows system dialog)
-            let prompted = request_accessibility_permission();
-            println!("[platform:macos] Permission request dialog shown: {}", prompted);
-
-            if !prompted {
-                return Err("Accessibility permission required for paste. Please grant in System Settings > Privacy & Security > Accessibility".to_string());
+            // Only prompt once per session to avoid spamming the user
+            if !PERMISSION_PROMPTED.swap(true, Ordering::SeqCst) {
+                // First time this session - show the system dialog
+                let prompted = request_accessibility_permission();
+                println!("[platform:macos] Permission request dialog shown: {}", prompted);
+            } else {
+                println!("[platform:macos] Already prompted this session, skipping dialog");
             }
+
+            // Return error - paste will fail without permission
+            // The content is already in the clipboard, so user can manually paste
+            return Err("Accessibility permission required for paste. Content copied to clipboard - use Cmd+V to paste manually.".to_string());
         } else {
             println!("[platform:macos] Accessibility permission: GRANTED");
         }

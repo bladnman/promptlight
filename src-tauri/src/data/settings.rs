@@ -20,9 +20,9 @@ pub struct GeneralSettings {
     pub welcome_screen_dismissed: bool,
 }
 
-/// Default hotkey: Cmd/Ctrl+Shift+Space
+/// Default hotkey: Cmd/Ctrl+/
 fn default_hotkey() -> Option<String> {
-    Some("CommandOrControl+Shift+Space".to_string())
+    Some("CommandOrControl+/".to_string())
 }
 
 /// Default editor always on top: true

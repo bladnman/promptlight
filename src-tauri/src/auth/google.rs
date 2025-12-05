@@ -82,11 +82,16 @@ pub async fn start_google_sign_in() -> Result<GoogleTokens, String> {
     // Build the authorization URL
     let auth_url = build_auth_url(&redirect_uri, &code_challenge)?;
 
-    // Open the browser
+    // Open the browser - do this BEFORE spawning the blocking task
+    // so the browser has time to start while we wait
     opener::open(&auth_url).map_err(|e| format!("Failed to open browser: {}", e))?;
 
-    // Wait for the OAuth callback
-    let code = wait_for_callback(listener)?;
+    // Wait for the OAuth callback in a blocking task to not block the async runtime
+    // This is critical: TcpListener::accept() is blocking and would freeze the app
+    let code = tokio::task::spawn_blocking(move || wait_for_callback(listener))
+        .await
+        .map_err(|e| format!("Task join error: {}", e))?
+        .map_err(|e| format!("OAuth callback error: {}", e))?;
 
     // Exchange the authorization code for tokens
     let tokens = exchange_code_for_tokens(&code, &code_verifier, &redirect_uri).await?;

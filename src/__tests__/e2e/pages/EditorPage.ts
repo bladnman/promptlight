@@ -109,8 +109,8 @@ export class EditorPage {
   /** Trigger editor store to reload prompts from backend */
   async reloadPrompts() {
     await this.page.evaluate(() => {
-      // Access the editor store via zustand's getState
-      const store = (window as unknown as { __ZUSTAND_DEVTOOLS_GLOBAL__?: { stores: Map<string, { getState: () => { loadPrompts: () => Promise<void> } }> } }).__ZUSTAND_DEVTOOLS_GLOBAL__?.stores?.get('editor');
+      // Access the editor store via the exposed __editorStore
+      const store = (window as unknown as { __editorStore?: { getState: () => { loadPrompts: () => Promise<void> } } }).__editorStore;
       if (store) {
         store.getState().loadPrompts();
       }

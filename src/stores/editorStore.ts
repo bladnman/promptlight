@@ -423,3 +423,8 @@ export const useEditorStore = create<EditorStore>((set, get) => ({
     set({ currentView: view });
   },
 }));
+
+// Expose store on window for E2E tests
+if (typeof window !== 'undefined') {
+  (window as unknown as { __editorStore: typeof useEditorStore }).__editorStore = useEditorStore;
+}
