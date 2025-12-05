@@ -109,7 +109,7 @@ pub fn run() {
                 }
             }
 
-            // Register global shortcut from settings (defaults to Cmd+Shift+Space)
+            // Register global shortcut from settings (defaults to Cmd+/)
             let app_handle = app.handle();
             if let Err(e) = init_hotkey_from_settings(app_handle) {
                 eprintln!("Failed to register global hotkey from settings: {}", e);

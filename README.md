@@ -12,7 +12,7 @@ PromptLight removes that friction with a keystroke-summoned launcher that finds 
 
 ## Features
 
-- **Global Hotkey** - Summon with `Cmd+Shift+Space` from anywhere
+- **Global Hotkey** - Summon with `Cmd+/` from anywhere
 - **Instant Search** - Type to filter prompts in real-time
 - **Keyboard Navigation** - Arrow keys to navigate, Enter to paste
 - **Folders** - Organize prompts by project or category
