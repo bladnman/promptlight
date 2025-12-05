@@ -32,6 +32,10 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
     executeSelected();
   };
 
+  const handleMouseEnter = () => {
+    setSelectedIndex(index);
+  };
+
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -44,6 +48,7 @@ export function ResultItem({ result, isSelected, index }: ResultItemProps) {
       ref={itemRef}
       className={`${styles.item} ${isSelected ? styles.selected : ''}`}
       onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
       onContextMenu={handleContextMenu}
       role="option"
       aria-selected={isSelected}

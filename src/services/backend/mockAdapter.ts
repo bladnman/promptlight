@@ -33,6 +33,7 @@ const defaultSettings: AppSettings = {
     autoLaunch: false,
     hotkey: 'CommandOrControl+Shift+Space',
     editorAlwaysOnTop: true,
+    welcomeScreenDismissed: false,
   },
   sync: {
     enabled: false,
@@ -267,6 +268,13 @@ export class MockAdapter implements BackendAdapter {
   ): Promise<void> {
     this._actionHistory.push({ type: 'open_editor', promptId, view });
     this.onOpenEditor?.(promptId, view);
+  }
+
+  async closeWelcomeWindow(dontShowAgain: boolean): Promise<void> {
+    if (dontShowAgain) {
+      this.settings.general.welcomeScreenDismissed = true;
+    }
+    this._actionHistory.push({ type: 'close_welcome', dontShowAgain });
   }
 
   // ============ Clipboard Operations ============

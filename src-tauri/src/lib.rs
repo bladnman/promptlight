@@ -86,6 +86,29 @@ pub fn run() {
                 }
             }
 
+            // Check if welcome screen should show
+            let show_welcome = crate::os::welcome::should_show_welcome();
+
+            if show_welcome {
+                // Hide the launcher (it starts hidden in tauri.conf.json but may be visible)
+                if let Some(launcher) = app.get_webview_window("launcher") {
+                    let _ = launcher.hide();
+                }
+
+                // Open welcome window
+                let app_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    if let Err(e) = crate::os::welcome::open_welcome_window(app_handle).await {
+                        eprintln!("Failed to open welcome window: {}", e);
+                    }
+                });
+            } else {
+                // Show launcher immediately if welcome is dismissed
+                if let Some(launcher) = app.get_webview_window("launcher") {
+                    let _ = launcher.show();
+                }
+            }
+
             // Register global shortcut from settings (defaults to Cmd+Shift+Space)
             let app_handle = app.handle();
             if let Err(e) = init_hotkey_from_settings(app_handle) {
@@ -126,6 +149,9 @@ pub fn run() {
             os::paste::copy_as_markdown_file,
             os::window::open_editor_window,
             os::window::close_editor_window,
+            // Welcome window commands
+            os::welcome::open_welcome_window,
+            os::welcome::close_welcome_window,
             // Hotkey commands
             os::hotkey::get_current_hotkey,
             os::hotkey::set_hotkey,
@@ -142,6 +168,14 @@ pub fn run() {
             // Handle dock icon click on macOS
             #[cfg(target_os = "macos")]
             if let RunEvent::Reopen { .. } = _event {
+                // If welcome window is visible, focus it
+                if crate::os::welcome::is_welcome_visible(_app_handle) {
+                    if let Some(welcome) = _app_handle.get_webview_window("welcome") {
+                        let _ = welcome.set_focus();
+                    }
+                    return;
+                }
+
                 // Check if editor window exists and is visible
                 if let Some(editor) = _app_handle.get_webview_window("editor") {
                     if editor.is_visible().unwrap_or(false) {

@@ -22,7 +22,7 @@
         "transparent": true,
         "backgroundColor": [0, 0, 0, 0],
         "alwaysOnTop": true,
-        "visible": true,
+        "visible": false,
         "skipTaskbar": true,
         "focus": true
       }

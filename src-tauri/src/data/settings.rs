@@ -15,6 +15,9 @@ pub struct GeneralSettings {
     /// Whether the editor window floats above other windows
     #[serde(default = "default_editor_always_on_top")]
     pub editor_always_on_top: bool,
+    /// Whether the welcome screen has been dismissed (don't show again)
+    #[serde(default)]
+    pub welcome_screen_dismissed: bool,
 }
 
 /// Default hotkey: Cmd/Ctrl+Shift+Space
@@ -33,6 +36,7 @@ impl Default for GeneralSettings {
             auto_launch: false,
             hotkey: default_hotkey(),
             editor_always_on_top: default_editor_always_on_top(),
+            welcome_screen_dismissed: false,
         }
     }
 }
