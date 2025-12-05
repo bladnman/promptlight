@@ -31,6 +31,7 @@ export interface GeneralSettings {
   autoLaunch: boolean;
   hotkey: string | null;
   editorAlwaysOnTop: boolean;
+  welcomeScreenDismissed: boolean;
 }
 
 /** Cloud sync settings */

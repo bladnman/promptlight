@@ -65,6 +65,10 @@ export class TauriAdapter implements BackendAdapter {
     return invoke('open_editor_window', { promptId, screenBounds, view });
   }
 
+  async closeWelcomeWindow(dontShowAgain: boolean): Promise<void> {
+    return invoke('close_welcome_window', { dontShowAgain });
+  }
+
   // ============ Clipboard Operations ============
 
   async pasteAndDismiss(text: string): Promise<void> {

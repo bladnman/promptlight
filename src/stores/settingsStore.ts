@@ -15,6 +15,8 @@ export interface GeneralSettings {
   hotkey: string | null;
   /** Whether the editor window should float above other windows (default: true) */
   editorAlwaysOnTop: boolean;
+  /** Whether the welcome screen has been dismissed (don't show again) */
+  welcomeScreenDismissed: boolean;
 }
 
 /** Cloud sync settings */
@@ -79,6 +81,7 @@ const defaultSettings: AppSettings = {
     autoLaunch: false,
     hotkey: 'CommandOrControl+Shift+Space',
     editorAlwaysOnTop: true,
+    welcomeScreenDismissed: false,
   },
   sync: {
     enabled: false,
@@ -130,6 +133,7 @@ export const useSettingsStore = create<SettingsStore>((set, get) => ({
         general: {
           ...settings.general,
           editorAlwaysOnTop: settings.general?.editorAlwaysOnTop ?? true,
+          welcomeScreenDismissed: settings.general?.welcomeScreenDismissed ?? false,
         },
         appearance: {
           theme: settings.appearance?.theme ?? DEFAULT_THEME,

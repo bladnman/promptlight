@@ -63,6 +63,9 @@ export interface BackendAdapter {
     view?: string
   ): Promise<void>;
 
+  /** Close welcome window and optionally save dismissal preference */
+  closeWelcomeWindow(dontShowAgain: boolean): Promise<void>;
+
   // ============ Clipboard Operations ============
 
   /** Paste text to the previously focused app and dismiss window */
@@ -132,6 +135,7 @@ export type TestAction =
   | { type: 'paste_from_editor'; text: string }
   | { type: 'dismiss' }
   | { type: 'open_editor'; promptId: string | null; view?: string }
+  | { type: 'close_welcome'; dontShowAgain: boolean }
   | { type: 'copy_to_clipboard'; text: string }
   | { type: 'copy_as_file'; name: string; content: string }
   | { type: 'record_usage'; id: string }

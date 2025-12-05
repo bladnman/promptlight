@@ -178,6 +178,14 @@ pub fn register_hotkey(app: &AppHandle, hotkey_str: &str) -> Result<(), String> 
                 return;
             }
 
+            // Dismiss welcome window if visible
+            if crate::os::welcome::is_welcome_visible(&app_handle) {
+                if let Some(welcome) = app_handle.get_webview_window("welcome") {
+                    let _ = welcome.close();
+                }
+                // Note: Don't save dismissal preference here - let user decide via checkbox
+            }
+
             if let Some(window) = app_handle.get_webview_window("launcher") {
                 // Toggle window visibility
                 if window.is_visible().unwrap_or(false) {
