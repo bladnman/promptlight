@@ -359,3 +359,14 @@ expect(actions.some(a => a.type === 'paste')).toBe(true);
 - Group by feature/domain, not by file type
 - Colocate related files (component + styles + tests + types)
 - Clear naming conventions that indicate purpose
+
+## Release Process
+
+When publishing releases, always build and upload **universal DMG** (supports both Intel and Apple Silicon Macs). The aarch64-only build excludes Intel Mac users.
+
+To build universal:
+```bash
+npm run tauri build -- --target universal-apple-darwin
+```
+
+The DMG will be at: `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`
